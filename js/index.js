@@ -1,11 +1,18 @@
 const MAX_INTEGER = Math.pow(2, 32);
 
-function assert(bool) {
+// Constructor for exceptions encountered during parsing.
+function ParseException(message) {
+	this.message = message;
+}
+
+// checks condition assumed for assembler instruction operands
+function assert(bool, message) {
 	if (!bool) {
-		console.trace("Error in assertion");
+		throw new ParseException(message);
 	}
 }
 
+// returns bit at position n, whereby bit 0 is the lowest bit.
 function getNthBit(bit, number) {
 	return (number >> bit) % 2;
 }
@@ -23,17 +30,205 @@ var flags = {
 	PARITY: false
 }
 
-//IIFE for scoping reasons
-var commandTree = (function() {
-	var commandList = [
-	];
+/* commandMap is a map. Key is the command name, value is a operation-
+ * generating function. Operation-generating functions are evaluated at parse
+ * time and get all operands. They return a function which is evaluated at
+ * execution time and changes the registers and flags according to operation
+ * specification and operands. Its construction is a bit complicated (see
+ * below), for that reason, it is wrapped inside of a IIFE.
+ */
+var commandMap = (function() {
+	var returner = new Map();
 
-	function arith(arithOperator, writeStatus, result, firstOp, secondOp) {
-		assert(arguments.length == 5);
-		result = getRegisterFromArgument(result);
-		firstOp = registers[getRegisterFromArgument(firstOp)];
-		secondOp = evalFlexibleOperator(secondOp);
-		result = arithOperator(writeStatus, firstOp, secondOp);
+	/* Many operations on ARM have different opcodes, but do practically the same.
+	 * This is, among other reasons, because of the S flag, which defines whether
+	 * flags should be set, and conditional execution. We try to solve this
+	 * problem by defining the function populateCommandMap which populates
+	 * commandMap with operations belonging to the same "opcode family".
+	 *
+	 * populateCommandMap takes two arguments, the first being a string with the
+	 * command name and wildcards <S> for the S flag and <cond> for conditional.
+	 * The second argument is a function which is only executed if <cond> is true.
+	 * If the <S> argument is not used, the signature is like a commandMap
+	 * argument, if the <S> argument is used, there is a writeStatus argument
+	 * before which defines whether status flags should be changed after
+	 * operation execution.
+	 */
+	function populateCommandMap(name, command) {
+		function populateCommandMapConditionsSolved(name, command) {
+			/* TODO implement arguments length checks for command. Must be done here,
+			 * only we know whether one of the arguments is writeStatus and whether we
+			 * must therefore subtract one from argument count.
+			 */
+			if (name.indexOf("<S>") == -1) {
+				returner.set(name.replace("<S>", "" ), command.bind(null, false));
+				returner.set(name.replace("<S>", "S"), command.bind(null, true));
+			} else {
+				returner.set(name, command);
+			}
+		}
+
+		var conditionCodes = [
+			["EQ", function() { return FLAGS.ZERO; }],
+			["NE", function() { return !FLAGS.ZERO; }],
+			["CS", function() { return FLAGS.CARRY; }],
+			["HS", function() { return FLAGS.CARRY; }],
+			["CC", function() { return !FLAGS.CARRY; }],
+			["LO", function() { return !FLAGS.CARRY; }],
+			["MI", function() { return FLAGS.NULL; }],
+			["PL", function() { return FLAGS.NULL; }],
+			["VS", function() { return FLAGS.OVERFLOW; }],
+			["VC", function() { return FLAGS.OVERFLOW; }],
+			["HI", function() { return FLAGS.CARRY && !FLAGS.ZERO; }],
+			["LS", function() { return !FLAGS.CARRY && FLAGS.ZERO; }],
+			["GE", function() { return FLAGS.NULL == FLAGS.OVERFLOW; }],
+			["LT", function() { return FLAGS.NULL != FLAGS.OVERFLOW; }],
+			["GT", function() { return !FLAGS.ZERO && FLAGS.NULL == FLAGS.OVERFLOW; }],
+			["LE", function() { return FLAGS.ZERO || FLAGS.NULL != FLAGS.OVERFLOW; }],
+			["AL", function() { return true; }],
+			["", function() { return true; }],
+		]
+
+		/* We first do the <cond> part and let populateCommandMapConditionsSolved
+		 * do the rest
+		 */
+		if (name.indexOf("<cond>") == -1) {
+			populateCommandMapConditionsSolved(name, command);
+		} else {
+			conditionCodes.forEach(function(conditionArray) {
+				populateCommandMapConditionsSolved(name.replace("<cond>", conditionArray[0]), function() {
+					// this operation shall be executed if condition is true
+					var operation = command.apply(null, arguments);
+					return function() {
+						if (conditionArray[1]()) {
+							operation();
+						}
+					}
+				});
+			});
+		}
+	}
+
+	/* Returns a function which, when invoked, returns the content of the register denoted by registerString.
+	 */
+	function setRegisterFunction(registerString) {
+		var regex = /^r([0-9]|1[0-5])$/;
+		var registerStringArray = registerString.match(regex);
+		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
+		return function(value) {
+			registers[registerStringArray] = value;
+		}
+	}
+
+	/* Returns a function which, when invoked, sets the content of the register denoted by registerString.
+	 */
+	function getRegisterFunction(registerString) {
+		var regex = /^r([0-9]|1[0-5])$/;
+		var registerStringArray = registerString.match(regex);
+		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
+		return function(value) {
+			return registers[registerStringArray];
+		}
+	}
+
+	/* Returns the number denoted by the numeric constant. If this is not a
+	 * numeric constant, a ParseException is thrown.
+	 */
+	function parseNumericConstant(constant) {
+		if (constant.match(/^#[0-9]+$/)) {
+			return parseInt(constant.substr(1), 10);
+		}
+
+		if (constant.match(/^#0x[0-9a-fA-F]+$/)) {
+			return parseInt(constant.substr(3), 16);
+		}
+
+		if (constant.match(/^#&[0-9a-fA-F]+$/)) {
+			return parseInt(constant.substr(3), 16);
+		}
+
+		if (constant.match(/^#[2-9]_[0-9]+$/)) {
+			throw new ParseException("Custom bases are not yet supported"); //TODO
+		}
+
+		if (constant.match(/^'.'$/)) {
+			throw new ParseException("Chars are not yet supported"); //TODO
+		}
+
+		throw new ParseException(flexOpFirstPart + " is not a valid constant");
+
+		/* TODO there also are numeric expressions, e. g. #(13+27). They are
+		 * currently not supported
+		 */
+	}
+
+	/* Evaluates a flexible second operand and returns a function which, when invoked,
+	 * returns a flexible second operand.
+	 *
+	 */
+	function evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart) {
+		// first, assume this is a constant.
+		var constant;
+		try {
+			constant = parseNumericConstant(flexOpFirstPart);
+		} catch(e) {
+			// this is no numeric constant. Don't throw yet, it might be something else.
+		}
+
+		if (constant) {
+			/* TODO only 8-bit pattern rotated by an even number of bits are allowed
+			 * by the ARM standard. This is currently not checked.
+			 */
+			assert(!flexOpSecondPart, "Can't parse flexible operator, did you add a parameter too much?");
+			return function() {
+				return constant;
+			}
+		}
+
+		// well, it is not a constant. So, at least the first part must be a register
+		var firstPartValue = getRegisterFunction(flexOpFirstPart);
+
+		if (!flexOpSecondPart) {
+			// no shift op, we are done here.
+			return firstPartValue;
+		}
+
+		// there might be multiple whitespace characters between shift op and operand
+		var flexOpSecondPart = flexOpSecondPart.replace(/\s\s+/g, ' ').split(" ");
+		if (flexOpSecondPart.length != 2) {
+			// there must be a shift operation and a shift operand
+			throw new ParseException("Cannot parse arguments");
+		}
+
+		flexOpSecondPart[1] = parseNumericConstant(flexOpSecondPart[1]);
+		if (flexOpSecondPart[0] == "ASR") {
+			return function() {
+				var value = firstPartValue();
+				var signedness = getNthBit(31, value);
+
+				return (value >> flexOpSecondPart[1]) % MAX_INTEGER;
+			}
+		}
+
+		throw new ParseException("Only ASR is implemented yet"); //TODO
+	}
+
+	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
+	 * All 6 operations are implemented in a similar way. Therefore, we define a
+	 * function arith which takes (among others) an argument arith which will
+	 * define operation-specific details, like which flags should be set.
+	 *
+	 * arith is then bound with the operation names. It now has the signature
+	 * commandList functions should have and is registered as such.
+	 */
+	function arith(arithOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart) {
+		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
+		var setResult = setRegisterFunction(result);
+		var getFirstOp = getRegisterFunction(firstOp);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		return function() {
+			setResult(arithOperator(writeStatus, getFirstOp(), getSecondOp()));
+		}
 	}
 
 	[
@@ -78,9 +273,8 @@ var commandTree = (function() {
 			return result;
 		}]
 	].forEach(function(array) {
-		var newCommandListElement = [array[0] + "<cond><S>", arith.bind(array[1])];
-		commandList.push(newCommandListElement);
+		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
 	});
 
-	// TODO add transformation from list to tree
+	return returner;
 }());
