@@ -253,7 +253,7 @@ var commandMap = (function() {
 			return result;
 		}],
 		["SUB", function(writeStatus, first, second) {
-			var result = (first + second) % MAX_INTEGER;
+			var result = (first - second) % MAX_INTEGER;
 			if (writeStatus) {
 				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
 				flags.ZERO = !result;
@@ -269,6 +269,105 @@ var commandMap = (function() {
 				 *   1   |    1   | never
 				 */
 				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+			}
+			return result;
+		}],
+		["RSB", function(writeStatus, first, second) {
+			var result = (second - first) % MAX_INTEGER;
+			if (writeStatus) {
+				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
+				flags.ZERO = !result;
+				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				/*
+				 * Overflow if signed bits are
+				 *
+				 * first | second | result
+				 * ------+--------+-------
+				 *   0   |    0   | never
+				 *   0   |    1   |   1
+				 *   1   |    0   |   0
+				 *   1   |    1   | never
+				 */
+				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
+			}
+			return result;
+		}],
+		["ADC", function(writeStatus, first, second) {
+			/* This is another way to handle it
+			 * var result = (first + second);
+			 * if (FLAGS.CARRY) {result += 1;}
+			 * result = result % MAX_INTEGER;
+			 *
+			 * Probably the if-clause is slighty faster than multiple calculations.
+			 */
+			if (FLAGS.CARRY) { 
+				var result = (first + second + 1) % MAX_INTEGER; 
+			} else { 
+				var result = (first + second) % MAX_INTEGER; 
+			}
+			if (writeStatus) {
+				flags.CARRY = (result < first);
+				flags.ZERO = !result;
+				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				/*
+				 * Overflow if signed bits are
+				 *
+				 * first | second | result
+				 * ------+--------+-------
+				 *   0   |    0   |   1
+				 *   0   |    1   | never
+				 *   1   |    0   | never
+				 *   1   |    1   |   0
+				 */
+				flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+			}
+			return result;
+		}],
+		["SBC", function(writeStatus, first, second) {
+			if (FLAGS.CARRY) {
+				var result = (first - second) % MAX_INTEGER;
+			} else {
+				var result = (first - second - 1) % MAX_INTEGER;
+			}
+			if (writeStatus) {
+				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
+				flags.ZERO = !result;
+				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				/*
+				 * Overflow if signed bits are
+				 *
+				 * first | second | result
+				 * ------+--------+-------
+				 *   0   |    0   | never
+				 *   0   |    1   |   1
+				 *   1   |    0   |   0
+				 *   1   |    1   | never
+				 */
+				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+			}
+			return result;
+		}],
+		["RSC", function(writeStatus, first, second) {
+			if (FLAGS.CARRY) {
+				var result = (second - first) % MAX_INTEGER;
+			} else {
+				var result = (second - first - 1) % MAX_INTEGER;
+			}
+			if (writeStatus) {
+				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
+				flags.ZERO = !result;
+				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				/*
+				 * Overflow if signed bits are
+				 *
+				 * first | second | result
+				 * ------+--------+-------
+				 *   0   |    0   | never
+				 *   0   |    1   |   1
+				 *   1   |    0   |   0
+				 *   1   |    1   | never
+				 */
+				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
 			}
 			return result;
 		}]
