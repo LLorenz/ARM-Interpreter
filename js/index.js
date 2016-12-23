@@ -60,7 +60,7 @@ var commandMap = (function() {
 			 * only we know whether one of the arguments is writeStatus and whether we
 			 * must therefore subtract one from argument count.
 			 */
-			if (name.indexOf("<S>") == -1) {
+			if (name.indexOf("<S>") != -1) {
 				returner.set(name.replace("<S>", "" ), command.bind(null, false));
 				returner.set(name.replace("<S>", "S"), command.bind(null, true));
 			} else {
@@ -75,16 +75,16 @@ var commandMap = (function() {
 			["HS", function() { return FLAGS.CARRY; }],
 			["CC", function() { return !FLAGS.CARRY; }],
 			["LO", function() { return !FLAGS.CARRY; }],
-			["MI", function() { return FLAGS.NULL; }],
-			["PL", function() { return FLAGS.NULL; }],
+			["MI", function() { return FLAGS.NEGATIVE; }],
+			["PL", function() { return !FLAGS.NEGATIVE; }],
 			["VS", function() { return FLAGS.OVERFLOW; }],
-			["VC", function() { return FLAGS.OVERFLOW; }],
+			["VC", function() { return !FLAGS.OVERFLOW; }],
 			["HI", function() { return FLAGS.CARRY && !FLAGS.ZERO; }],
-			["LS", function() { return !FLAGS.CARRY && FLAGS.ZERO; }],
-			["GE", function() { return FLAGS.NULL == FLAGS.OVERFLOW; }],
-			["LT", function() { return FLAGS.NULL != FLAGS.OVERFLOW; }],
-			["GT", function() { return !FLAGS.ZERO && FLAGS.NULL == FLAGS.OVERFLOW; }],
-			["LE", function() { return FLAGS.ZERO || FLAGS.NULL != FLAGS.OVERFLOW; }],
+			["LS", function() { return !FLAGS.CARRY || FLAGS.ZERO; }],
+			["GE", function() { return FLAGS.NEGATIVE == FLAGS.OVERFLOW; }],
+			["LT", function() { return FLAGS.NEGATIVE != FLAGS.OVERFLOW; }],
+			["GT", function() { return !FLAGS.ZERO && FLAGS.NEGATIVE == FLAGS.OVERFLOW; }],
+			["LE", function() { return FLAGS.ZERO || FLAGS.NEGATIVE != FLAGS.OVERFLOW; }],
 			["AL", function() { return true; }],
 			["", function() { return true; }],
 		]
@@ -115,8 +115,9 @@ var commandMap = (function() {
 		var regex = /^r([0-9]|1[0-5])$/;
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
+		var registerIndex = registerStringArray[1];
 		return function(value) {
-			registers[registerStringArray] = value;
+			registers[registerIndex] = value;
 		}
 	}
 
@@ -126,8 +127,9 @@ var commandMap = (function() {
 		var regex = /^r([0-9]|1[0-5])$/;
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
+		var registerIndex = registerStringArray[1];
 		return function(value) {
-			return registers[registerStringArray];
+			return registers[registerIndex];
 		}
 	}
 
@@ -250,6 +252,7 @@ var commandMap = (function() {
 				 */
 				flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
 			}
+
 			return result;
 		}],
 		["SUB", function(writeStatus, first, second) {
@@ -300,10 +303,10 @@ var commandMap = (function() {
 			 *
 			 * Probably the if-clause is slighty faster than multiple calculations.
 			 */
-			if (FLAGS.CARRY) { 
-				var result = (first + second + 1) % MAX_INTEGER; 
-			} else { 
-				var result = (first + second) % MAX_INTEGER; 
+			if (FLAGS.CARRY) {
+				var result = (first + second + 1) % MAX_INTEGER;
+			} else {
+				var result = (first + second) % MAX_INTEGER;
 			}
 			if (writeStatus) {
 				flags.CARRY = (result < first);
