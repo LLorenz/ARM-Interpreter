@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html ng-app="InterpreterApp">
+  <head>
+    <title>Demo-Interface</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.js"></script>
+    <script src="js/index.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <script>
+      angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope) {
+        $scope.processorState = {
+          register: registers,
+          flags: flags
+        };
+        $scope.enteredCommand = "";
+        $scope.executeCommand = function() {
+          var commandString = $scope.enteredCommand;
+          var opcodeLength = commandString.indexOf(" ");
+          if (opcodeLength == -1) {
+            // no spaces in command. This command consists of opcode only.
+            opcodeLength = commandString.length;
+          }
+          var opcodeString = commandString.substr(0, opcodeLength).toUpperCase();
+          console.log(commandString.substr(opcodeLength + 1).split(","));
+          var options = commandString.substr(opcodeLength + 1).split(",").map(arg => String.prototype.trim.call(arg));
+
+          var commandFactory = commandMap.get(opcodeString);
+          if (commandFactory == undefined) {
+            window.alert("Unknown opcode " + opcodeString);
+            return;
+          }
+
+          var command = commandFactory.apply(undefined, options);
+
+          command();
+        }
+        $scope.normalizeInput = function(register) {
+          $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
+        }
+      }).directive('processorState', function() {
+        return {
+          templateUrl: "processorStateDirectiveTemplate.html"
+        };
+
+      });;
+    </script>
+
+    <script type="text/ng-template" id="processorStateDirectiveTemplate.html">
+      Registers:
+      <div ng-repeat="register in processorState.register track by $index">
+        R{{$index}}: <input type="number" ng-model="processorState.register[$index]" ng-change="normalizeInput($index)">
+      </div>
+      <br><br>
+      Carry <input type="checkbox" ng-model="processorState.flags.CARRY">
+      Zero <input type="checkbox" ng-model="processorState.flags.ZERO">
+      Negative <input type="checkbox" ng-model="processorState.flags.NEGATIVE">
+      Overflow <input type="checkbox" ng-model="processorState.flags.OVERFLOW">
+      Parity <input type="checkbox" ng-model="processorState.flags.PARITY">
+    </script>
+  </head>
+  <body ng-controller="MainCtrl">
+    <processor-state></processor-state>
+    <form ng-submit="executeCommand()">
+      <input type="text" ng-model="enteredCommand">
+      <input type="submit" value="Ausführen">
+    </form>
+  </body>
+</html>
