@@ -378,5 +378,42 @@ var commandMap = (function() {
 		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
 	});
 
+	/* MOVING OPERATIONS (MOV, MVN)
+	 * 
+	 */
+	function mov(movOperator, writeStatus, result, flexOpFirstPart, flexOpSecondPart) {
+		//assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
+		var setResult = setRegister(result);
+		var getValue = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		return function() {
+			setResult(movOperator(writeStatus, getValue()));
+		}
+	}
+	
+	[
+		["MOV", function(writeStatus, value) {
+			var result = value;
+			if (writeStatus) {
+				ZERO = (result == 0);
+				NEGATIVE = (result < 0);
+				// change C according to eval of second op
+				// dont affect V flag
+			}
+			return result; 
+		}],
+		["MVN", function(writeStatus, value) {
+		   var result = ~ value;
+		   if writeStatus() {
+				ZERO = (result == 0);
+				NEGATIVE = (result < 0);
+				// change C according to eval of second op
+				// dont affect V flag
+		   }
+		   return result;
+		}]
+	].forEach(function(array) {
+		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
+	});
+ 
 	return returner;
 }());
