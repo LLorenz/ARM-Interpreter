@@ -383,7 +383,7 @@ var commandMap = (function() {
 	 */
 	function mov(movOperator, writeStatus, result, flexOpFirstPart, flexOpSecondPart) {
 		//assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
-		var setResult = setRegister(result);
+		var setResult = setRegisterFunction(result);
 		var getValue = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
 		return function() {
 			setResult(movOperator(writeStatus, getValue()));
@@ -403,7 +403,7 @@ var commandMap = (function() {
 		}],
 		["MVN", function(writeStatus, value) {
 		   var result = ~ value;
-		   if writeStatus() {
+		   if (writeStatus) {
 				ZERO = (result == 0);
 				NEGATIVE = (result < 0);
 				// change C according to eval of second op
@@ -412,7 +412,7 @@ var commandMap = (function() {
 		   return result;
 		}]
 	].forEach(function(array) {
-		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
+		populateCommandMap(array[0] + "<cond><S>", mov.bind(null, array[1]));
 	});
  
 	return returner;
