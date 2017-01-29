@@ -22,6 +22,8 @@ for (var i = 0; i < 16; i++) {
 	registers.push(0);
 }
 
+var memory = new Uint8Array(1024*1024) //TODO should be somehow dynamically allocated
+
 var flags = {
 	CARRY: false,
 	ZERO: false,
@@ -414,6 +416,40 @@ var commandMap = (function() {
 	].forEach(function(array) {
 		populateCommandMap(array[0] + "<cond><S>", mov.bind(null, array[1]));
 	});
- 
+
+	populateCommandMap("LDR<cond>", function(result, source, offset) {
+		assert(arguments.length == 2 || arguments.length == 3, "Argument count wrong, expected 32 or 3, got " + arguments.length);
+		assert(source.charAt(0) == "[", "Labels aren't supported yet"); // everything except labels is indirectand in []. TODO
+
+		assert((arguments.length == 2 && source.charAt(source.length - 1) == "]")
+	       || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
+
+		if (arguments.length == 2) {
+			var getIndirectReference = getRegisterFunction(source.substr(1, source.length - 2).trim());
+			var setResult = setRegisterFunction(result);
+
+			return function() {
+				setResult(memory[getIndirectReference()]);
+			}
+		}
+	});
+	populateCommandMap("STR<cond>", function(result, source, offset) {
+		assert(arguments.length == 2 || arguments.length == 3, "Argument count wrong, expected 32 or 3, got " + arguments.length);
+		assert(source.charAt(0) == "[", "Labels aren't supported yet"); // everything except labels is indirectand in []. TODO
+
+		assert((arguments.length == 2 && source.charAt(source.length - 1) == "]")
+	       || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
+
+		if (arguments.length == 2) {
+			var getIndirectReference = getRegisterFunction(source.substr(1, source.length - 2).trim());
+			var getResult = getRegisterFunction(result);
+
+			return function() {
+
+				memory[getIndirectReference()] = getResult();
+			}
+		}
+	})
+
 	return returner;
 }());
