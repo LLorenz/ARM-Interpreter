@@ -111,9 +111,10 @@ var commandMap = (function() {
 		}
 	}
 
-	/* Returns a function which, when invoked, returns the content of the register denoted by registerString.
+	/* Returns a function which, when invoked, sets the content of the register denoted by registerString.
 	 */
 	function setRegisterFunction(registerString) {
+		registerString = registerString.toLowerCase();
 		var regex = /^r([0-9]|1[0-5])$/;
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
@@ -123,9 +124,10 @@ var commandMap = (function() {
 		}
 	}
 
-	/* Returns a function which, when invoked, sets the content of the register denoted by registerString.
+	/* Returns a function which, when invoked, returns the content of the register denoted by registerString.
 	 */
 	function getRegisterFunction(registerString) {
+		registerString = registerString.toLowerCase();
 		var regex = /^r([0-9]|1[0-5])$/;
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
