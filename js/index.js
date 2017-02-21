@@ -511,3 +511,12 @@ function Assembly(instructions) {
 		}
 	}
 }
+
+// Hack to export relevant objects for testing in Node.js (without browser) into global object.
+// For the ease of testing, we are currently not using the module.exports facilities.
+// TODO as soon as we have a stable interface, export that interface, preferably with module.exports.
+if (module && module.exports) {
+	global.registers = registers;
+	global.Assembly = Assembly;
+	global.Command = Command;
+}
