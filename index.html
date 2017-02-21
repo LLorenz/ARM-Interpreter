@@ -46,6 +46,41 @@
         $scope.normalizeInput = function(register) {
           $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
         }
+
+        $scope.assembleOrDestroy = function() {
+          if ($scope.assembly) {
+            $scope.destroyAssembled();
+          } else {
+            $scope.assembleTextBox();
+          }
+        }
+
+        $scope.assembleTextBox = function() {
+          var assembler = $scope.assemblerTextBox.split("\n");
+          try {
+            $scope.assembly = new Assembly(assembler);
+          } catch (e) {
+            if (!e instanceof ParseException) {
+              throw e;
+            }
+
+            alert("Error parsing: " + e.message);
+          }
+        }
+        $scope.destroyAssembled = function() {
+          $scope.assembly = undefined;
+        }
+
+        $scope.next = function() {
+          try {
+            $scope.assembly.step();
+          } catch (e) {
+            if (!e instanceof RuntimeException) {
+              throw e;
+            }
+            alert("Error at runtime: " + e.message);
+          }
+        }
       }).directive('processorState', function() {
         return {
           templateUrl: "processorStateDirectiveTemplate.html"
@@ -73,5 +108,12 @@
       <input type="text" ng-model="enteredCommand">
       <input type="submit" value="Ausführen">
     </form>
+
+    <form ng-submit="assembleOrDestroy()">
+      <textarea ng-model="assemblerTextBox" ng-disabled="assembly" rows="8" cols="80"></textarea>
+      <input type="submit" value="{{assembly ? 'Destroy' : 'Assemble'}}">
+    </form>
+
+    <button ng-click="next()" ng-show="assembly">Next Step</button>
   </body>
 </html>

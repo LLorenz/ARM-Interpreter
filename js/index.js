@@ -492,3 +492,22 @@ function Command(commandString) {
 	var command = commandFactory.apply(undefined, options);
 	return command;
 }
+
+function Assembly(instructions) {
+	instructions = instructions.map(Command);
+
+	console.log("bla",this);
+	this.step = function() {
+		var instructionToExecute = instructions[registers[15]];
+
+		if (!instructionToExecute) {
+			throw new RuntimeException("R15 at index " + registers[15] + ", there is no assembly.");
+		}
+
+		instructionToExecute();
+		if (!instructionToExecute.isBranch) {
+			//This is NOT a branch. Therefore, we increment R15 to point to the next instruction.
+			registers[15]++;
+		}
+	}
+}
