@@ -2,8 +2,21 @@ const MAX_INTEGER = Math.pow(2, 32);
 
 // Constructor for exceptions encountered during parsing.
 function ParseException(message) {
+	this.name = "ParseException";
 	this.message = message;
-}
+	this.stack = (new Error()).stack;
+};
+
+ParseException.prototype = Object.create(Error.prototype)
+
+// Constructor for exceptions encountered during runtime.
+function RuntimeException(message) {
+	this.name = "ParseException";
+	this.message = message;
+	this.stack = (new Error()).stack;
+};
+
+RuntimeException.prototype = Object.create(Error.prototype)
 
 // checks condition assumed for assembler instruction operands
 function assert(bool, message) {
