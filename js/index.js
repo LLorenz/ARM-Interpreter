@@ -205,8 +205,13 @@ var commandMap = (function() {
 		}
 
 		// well, it is not a constant. So, at least the first part must be a register
-		var firstPartValue = getRegisterFunction(flexOpFirstPart);
+		var firstPartValue;
 
+		try {
+			firstPartValue = getRegisterFunction(flexOpFirstPart);
+		} catch (e) {
+			throw new ParseException("Can't parse " + flexOpFirstPart + " as constant or as register.");
+		}
 		if (!flexOpSecondPart) {
 			// no shift op, we are done here.
 			return firstPartValue;
