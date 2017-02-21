@@ -181,7 +181,7 @@ var commandMap = (function() {
 			// this is no numeric constant. Don't throw yet, it might be something else.
 		}
 
-		if (constant) {
+		if (constant != undefined) {
 			/* TODO only 8-bit pattern rotated by an even number of bits are allowed
 			 * by the ARM standard. This is currently not checked.
 			 */
