@@ -473,3 +473,22 @@ var commandMap = (function() {
 
 	return returner;
 }());
+
+function Command(commandString) {
+	var opcodeLength = commandString.indexOf(" ");
+	if (opcodeLength == -1) {
+		// no spaces in command. This command consists of opcode only.
+		opcodeLength = commandString.length;
+	}
+	var opcodeString = commandString.substr(0, opcodeLength).toUpperCase();
+	var options = commandString.substr(opcodeLength + 1).split(",").map(arg => String.prototype.trim.call(arg));
+
+	var commandFactory = commandMap.get(opcodeString);
+	if (commandFactory == undefined) {
+		window.alert("Unknown opcode " + opcodeString);
+		return;
+	}
+
+	var command = commandFactory.apply(undefined, options);
+	return command;
+}

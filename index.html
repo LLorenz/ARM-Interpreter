@@ -20,24 +20,28 @@
         $scope.enteredCommand = "";
         $scope.executeCommand = function() {
           var commandString = $scope.enteredCommand;
-          var opcodeLength = commandString.indexOf(" ");
-          if (opcodeLength == -1) {
-            // no spaces in command. This command consists of opcode only.
-            opcodeLength = commandString.length;
-          }
-          var opcodeString = commandString.substr(0, opcodeLength).toUpperCase();
-          console.log(commandString.substr(opcodeLength + 1).split(","));
-          var options = commandString.substr(opcodeLength + 1).split(",").map(arg => String.prototype.trim.call(arg));
+          var command;
+          try {
+            command = Command(commandString);
+          } catch (e) {
+            if (!e instanceof ParseException) {
+              throw e;
+            }
 
-          var commandFactory = commandMap.get(opcodeString);
-          if (commandFactory == undefined) {
-            window.alert("Unknown opcode " + opcodeString);
-            return;
+            alert("Error parsing: " + e.message);
+            console.log(e);
           }
 
-          var command = commandFactory.apply(undefined, options);
+          try {
+            command();
+          } catch (e) {
+            if (!e instanceof RuntimeException) {
+              throw e;
+            }
 
-          command();
+            alert("Error at runtime: " + e.message);
+            console.log(e)
+          }
         }
         $scope.normalizeInput = function(register) {
           $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
