@@ -59,6 +59,15 @@ function getNthBit(bit, number) {
 	return (number >> bit) % 2;
 }
 
+// js modulo incorrect for negative values
+function convToUInt32(value) {
+	value = value % MAX_INTEGER;
+	if (value < 0) {
+		value += MAX_INTEGER;
+	}
+	return value;
+}
+
 var registers = [];
 for (var i = 0; i < 16; i++) {
 	registers.push(0);
@@ -142,7 +151,7 @@ var commandMap = (function() {
 			["GT", function() { return !FLAGS.ZERO && FLAGS.NEGATIVE == FLAGS.OVERFLOW; }],
 			["LE", function() { return FLAGS.ZERO || FLAGS.NEGATIVE != FLAGS.OVERFLOW; }],
 			["AL", function() { return true; }],
-			["", function() { return true; }],
+			["", function() { return true; }]
 		]
 
 		/* We first do the <cond> part and let populateCommandMapConditionsSolved
@@ -314,7 +323,7 @@ var commandMap = (function() {
 
 	[
 		["ADD", function(writeStatus, first, second) {
-			var result = (first + second) % MAX_INTEGER;
+			var result = (first + second) % MAX_INTEGER; // not do this, to get bit #32
 			if (writeStatus) {
 				flags.CARRY = (result < first);
 				flags.ZERO = !result;
