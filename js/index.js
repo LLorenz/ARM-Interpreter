@@ -47,6 +47,15 @@ function matchLabels() {
 	labelsMatched = true;
 }
 
+// js modulo incorrect for negative values
+function convToUInt32(value) {
+	value = value % MAX_INTEGER;
+	if (value < 0) {
+		value += MAX_INTEGER;
+	}
+	return value;
+}
+
 // checks condition assumed for assembler instruction operands
 function assert(bool, message) {
 	if (!bool) {
@@ -59,14 +68,6 @@ function getNthBit(bit, number) {
 	return (number >> bit) % 2;
 }
 
-// js modulo incorrect for negative values
-function convToUInt32(value) {
-	value = value % MAX_INTEGER;
-	if (value < 0) {
-		value += MAX_INTEGER;
-	}
-	return value;
-}
 
 var registers = [];
 for (var i = 0; i < 16; i++) {
@@ -296,7 +297,7 @@ var commandMap = (function() {
 				var value = firstPartValue();
 				var signedness = getNthBit(31, value);
 
-				return (value >> flexOpSecondPart[1]) % MAX_INTEGER;
+				return convToUInt32((value >> flexOpSecondPart[1]));
 			}
 		}
 
@@ -323,11 +324,11 @@ var commandMap = (function() {
 
 	[
 		["ADD", function(writeStatus, first, second) {
-			var result = (first + second) % MAX_INTEGER; // not do this, to get bit #32
+			var result = convToUInt32((first + second));
 			if (writeStatus) {
 				flags.CARRY = (result < first);
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
@@ -344,11 +345,11 @@ var commandMap = (function() {
 			return result;
 		}],
 		["SUB", function(writeStatus, first, second) {
-			var result = (first - second) % MAX_INTEGER;
+			var result = convToUInt32(first - second);
 			if (writeStatus) {
 				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
@@ -364,11 +365,11 @@ var commandMap = (function() {
 			return result;
 		}],
 		["RSB", function(writeStatus, first, second) {
-			var result = (second - first) % MAX_INTEGER;
+			var result = convToUInt32((second - first));
 			if (writeStatus) {
 				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
@@ -392,14 +393,14 @@ var commandMap = (function() {
 			 * Probably the if-clause is slighty faster than multiple calculations.
 			 */
 			if (FLAGS.CARRY) {
-				var result = (first + second + 1) % MAX_INTEGER;
+				var result = convToUInt32(first + second + 1);
 			} else {
-				var result = (first + second) % MAX_INTEGER;
+				var result = convToUInt32(first + second);
 			}
 			if (writeStatus) {
 				flags.CARRY = (result < first);
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
@@ -416,14 +417,14 @@ var commandMap = (function() {
 		}],
 		["SBC", function(writeStatus, first, second) {
 			if (FLAGS.CARRY) {
-				var result = (first - second) % MAX_INTEGER;
+				var result = convToUInt32(first - second);
 			} else {
-				var result = (first - second - 1) % MAX_INTEGER;
+				var result = convToUInt32(first - second - 1);
 			}
 			if (writeStatus) {
 				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
@@ -440,14 +441,14 @@ var commandMap = (function() {
 		}],
 		["RSC", function(writeStatus, first, second) {
 			if (FLAGS.CARRY) {
-				var result = (second - first) % MAX_INTEGER;
+				var result = convToUInt32(second - first);
 			} else {
-				var result = (second - first - 1) % MAX_INTEGER;
+				var result = convToUInt32(second - first - 1);
 			}
 			if (writeStatus) {
 				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
 				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result % MAX_INTEGER);
+				flags.NEGATIVE = getNthBit(31, result);
 				/*
 				 * Overflow if signed bits are
 				 *
