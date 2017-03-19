@@ -1,21 +1,29 @@
 * {
 	box-sizing:border-box;
+	margin: 0;
+	padding: 0;
+	font-size: inherit;
 }
 
 html {
 	font-size:20px;
 }
 
-#header, #asm-input, #console, #register-overview, #controls {
+#header, #asm-input, #console, processor-state, #controls {
 	position:absolute;
+	overflow-y: auto;
 }
 
 #header {
 	top:0;
-	height:5em;
+	height:2.5em;
 	left:0;
-	right:0;
-background-color:#00f;
+	right:20%;
+	line-height: 2.5em;
+	font-size: 2em;
+	text-align:center;
+	background-color:#00005e;
+	color:white;
 }
 
 #asm-input {
@@ -23,7 +31,34 @@ background-color:#00f;
 	bottom:5em;
 	left:0;
 	width:80%;
-background-color:#0f0;
+}
+
+#asm-input textarea, #asm-input .CodeMirror {
+	border:none;
+	width:100%;
+	height:calc(100% - 2em);
+	/*font-size:inherit;*/
+	display:block;
+}
+
+.CodeMirror.read-only {
+	background-color: #ddd;
+}
+
+.breakpoints {
+	width: 0.8em;
+}
+
+.gutter-highlight {
+	background-color:#ddf;
+}
+
+#asm-input input[type=submit] {
+	width:100%;
+	font-size: 0.8em;
+	height:2.5em;
+	line-height: 2.5em;
+	display:block;
 }
 
 #console {
@@ -31,15 +66,78 @@ background-color:#0f0;
 	bottom:0;
 	left:0;
 	width:80%;
-background-color:#f00;
+	background-color:black;
+	color:white;
+	font-family:monospace;
 }
 
-#register-overview {
-	top:5em;
+@keyframes cursorblink {
+	0% {
+		background-color:black;
+	}
+	50% {
+		background-color:white;
+	}
+	100% {
+		background-color:white;
+	}
+}
+
+#console .cursor {
+	animation: cursorblink 1s steps(1) infinite;
+	animation-play-state: running;
+}
+
+processor-state {
+	background-color:#dedeff;
+	top:0em;
 	bottom:2em;
 	width:20%;
 	right:0;
-background-color:#ff0;
+}
+
+.register-table {
+	width:95%;
+	margin:auto;
+	border-collapse: collapse;
+}
+
+.register-table td {
+	padding: 0.3em 0;
+}
+
+.register-table td:nth-child(1) {
+	padding-left: 5px;
+	padding-right: 5px;
+	font-weight:bold;
+	font-size:1em;
+	line-height: 1.25em;
+}
+
+.register-table td:nth-child(2) {
+	padding-right: 5px;
+}
+
+.register-table td:nth-child(2) > * {
+	display:block;
+	width:100%;
+	min-width: 1.25em;
+	height:1.25em;
+}
+
+.register-table tr:nth-child(odd) {
+	background-color:rgba(50, 50, 255, 0.8);
+}
+
+.register-table tr:nth-child(even) {
+	background-color:rgba(150, 150, 255, 0.8);
+}
+
+.register-table input[type=number] {
+	background-color: rgba(255, 255, 255, 0.7);
+	font-size:1em;
+	line-height:1.25em;
+	border:none;
 }
 
 #controls {
@@ -47,5 +145,39 @@ background-color:#ff0;
 	bottom:0;
 	width:20%;
 	right:0;
-background-color:#f0f;
+}
+
+#controls-inactive {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	font-size: 0.8em;
+	line-height: 1.2em;
+	background-color: #dedeff;
+	opacity: 0.5;
+}
+
+#controls-flex {
+	width:100%;
+	height:100%;
+	display: flex;
+	flex-direction: row;
+}
+
+#controls-flex > * {
+	flex: 1 1 auto;
+}
+
+h2 {
+	font-weight: bolder;
+	font-size:1.8em;
+	margin-left:0.8em;
+	margin-bottom: 0.3em;
+	margin-top: 0.8em;
 }

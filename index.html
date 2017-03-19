@@ -2,6 +2,10 @@
 <html ng-app="InterpreterApp">
   <head>
     <title>Demo-Interface</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="standard.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.js"></script>
     <script src="js/index.js"></script>
     <style>
@@ -12,7 +16,62 @@
     </style>
 
     <script>
-      angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope) {
+      angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope, $timeout) {
+        // if we execute the CodeMirror initializationat controller time, we get problems with AngularJS compiler.
+        // Do it later.
+        $timeout(function() {
+          var editor = CodeMirror(function(editorTag) {
+            document.querySelector("#asm-input").insertBefore(editorTag, document.querySelector("#assembleSubmit"))
+          }, {
+            lineNumbers: true,
+            gutters: ["CodeMirror-linenumbers", "breakpoints"]
+          });
+          editor.on("changes", function() {
+            console.log("Save");
+            $scope.$apply(function() {
+              $scope.assemblerTextBox = editor.getValue();
+            });
+          });
+          $scope.isLineToggled = function(lineNumber) {
+            return !!editor.lineInfo(lineNumber).gutterMarkers;
+          }
+          function makeMarker() {
+            var marker = document.createElement("div");
+            marker.style.color = "#99e";
+            marker.innerHTML = "&#x25CF;";
+            return marker;
+          }
+          $scope.$watch("processorState.register[15]", function(newVal, oldVal) {
+            var lineCount = editor.lineCount();
+            if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
+              editor.removeLineClass(oldVal, "gutter", "gutter-highlight");
+            }
+            if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
+              editor.addLineClass(newVal, "gutter", "gutter-highlight");
+            }
+          });
+          $scope.$watch("assembly", function(asse) {
+            console.log("Demo", asse);
+            if (asse) {
+              editor.setOption("readOnly", true);
+              angular.element(editor.getWrapperElement()).addClass("read-only");
+              editor.addLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+            } else {
+              editor.setOption("readOnly", false);
+              angular.element(editor.getWrapperElement()).removeClass("read-only");
+              editor.removeLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+            }
+          });
+          editor.on("gutterClick", function(cm, n) {
+            console.log(n);
+            var info = cm.lineInfo(n);
+            if ($scope.isLineToggled(n)) {
+              cm.setGutterMarker(n, "breakpoints", null);
+            } else {
+              cm.setGutterMarker(n, "breakpoints", makeMarker());
+            }
+          });
+        }, 0);
         $scope.processorState = {
           register: registers,
           flags: flags
@@ -82,39 +141,49 @@
             alert("Error at runtime: " + e.message);
           }
         }
+
+        $scope.notImplementedYet = function() {
+          alert("Not implemented yet");
+        }
       }).directive('processorState', function() {
         return {
           templateUrl: "processorStateDirectiveTemplate.html"
         };
 
-      });;
+      });
     </script>
 
     <script type="text/ng-template" id="processorStateDirectiveTemplate.html">
-      Registers:
-      <div ng-repeat="register in processorState.register track by $index">
-        R{{$index}}: <input type="number" ng-model="processorState.register[$index]" ng-change="normalizeInput($index)">
-      </div>
-      <br><br>
-      Carry <input type="checkbox" ng-model="processorState.flags.CARRY">
-      Zero <input type="checkbox" ng-model="processorState.flags.ZERO">
-      Negative <input type="checkbox" ng-model="processorState.flags.NEGATIVE">
-      Overflow <input type="checkbox" ng-model="processorState.flags.OVERFLOW">
-      Parity <input type="checkbox" ng-model="processorState.flags.PARITY">
+      <h2>Registers</h2>
+      <table class="register-table">
+        <tr ng-repeat="register in processorState.register track by $index">
+          <td>R{{$index}}</td><td><input type="number" ng-model="processorState.register[$index]" ng-change="normalizeInput($index)"></td>
+        </tr>
+      </table>
+      <h2>Flags</h2>
+      <table class="register-table">
+        <tr><td>Carry</td><td><input type="checkbox" ng-model="processorState.flags.CARRY"></td></tr>
+        <tr><td>Zero</td><td><input type="checkbox" ng-model="processorState.flags.ZERO"></td></tr>
+        <tr><td>Negative</td><td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td></tr>
+        <tr><td>Overflow</td><td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td></tr>
+        <tr><td>Parity</td><td><input type="checkbox" ng-model="processorState.flags.PARITY"></td></tr>
+      </table>
     </script>
   </head>
   <body ng-controller="MainCtrl">
+    <div id="header">ARM-Interpreter</div>
+    <form id="asm-input" ng-submit="assembleOrDestroy()">
+      <input id="assembleSubmit" type="submit" value="{{assembly ? 'Edit' : 'Assemble'}}">
+    </form>
+    <div id="console">Konsole - im Moment ohne Funktion<span class="cursor">&nbsp;</span></div>
     <processor-state></processor-state>
-    <form ng-submit="executeCommand()">
-      <input type="text" ng-model="enteredCommand">
-      <input type="submit" value="Ausführen">
-    </form>
-
-    <form ng-submit="assembleOrDestroy()">
-      <textarea ng-model="assemblerTextBox" ng-disabled="assembly" rows="8" cols="80"></textarea>
-      <input type="submit" value="{{assembly ? 'Destroy' : 'Assemble'}}">
-    </form>
-
-    <button ng-click="next()" ng-show="assembly">Next Step</button>
+    <div id="controls">
+      <div id="controls-flex">
+        <button ng-click="notImplementedYet()">&#x21e4</button>
+        <button ng-click="notImplementedYet()">&#x2190</button>
+        <button ng-click="next()">&#x2192</button>
+        <button ng-click="notImplementedYet()">&#x21e5</button></div>
+      <div id="controls-inactive" ng-hide="assembly">Press Assemble before running</div>
+    </div>
   </body>
 </html>
