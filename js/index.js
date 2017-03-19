@@ -135,22 +135,22 @@ var commandMap = (function() {
 		}
 
 		var conditionCodes = [
-			["EQ", function() { return FLAGS.ZERO; }],
-			["NE", function() { return !FLAGS.ZERO; }],
-			["CS", function() { return FLAGS.CARRY; }],
-			["HS", function() { return FLAGS.CARRY; }],
-			["CC", function() { return !FLAGS.CARRY; }],
-			["LO", function() { return !FLAGS.CARRY; }],
-			["MI", function() { return FLAGS.NEGATIVE; }],
-			["PL", function() { return !FLAGS.NEGATIVE; }],
-			["VS", function() { return FLAGS.OVERFLOW; }],
-			["VC", function() { return !FLAGS.OVERFLOW; }],
-			["HI", function() { return FLAGS.CARRY && !FLAGS.ZERO; }],
-			["LS", function() { return !FLAGS.CARRY || FLAGS.ZERO; }],
-			["GE", function() { return FLAGS.NEGATIVE == FLAGS.OVERFLOW; }],
-			["LT", function() { return FLAGS.NEGATIVE != FLAGS.OVERFLOW; }],
-			["GT", function() { return !FLAGS.ZERO && FLAGS.NEGATIVE == FLAGS.OVERFLOW; }],
-			["LE", function() { return FLAGS.ZERO || FLAGS.NEGATIVE != FLAGS.OVERFLOW; }],
+			["EQ", function() { return flags.ZERO; }],
+			["NE", function() { return !flags.ZERO; }],
+			["CS", function() { return flags.CARRY; }],
+			["HS", function() { return flags.CARRY; }],
+			["CC", function() { return !flags.CARRY; }],
+			["LO", function() { return !flags.CARRY; }],
+			["MI", function() { return flags.NEGATIVE; }],
+			["PL", function() { return !flags.NEGATIVE; }],
+			["VS", function() { return flags.OVERFLOW; }],
+			["VC", function() { return !flags.OVERFLOW; }],
+			["HI", function() { return flags.CARRY && !flags.ZERO; }],
+			["LS", function() { return !flags.CARRY || flags.ZERO; }],
+			["GE", function() { return flags.NEGATIVE == flags.OVERFLOW; }],
+			["LT", function() { return flags.NEGATIVE != flags.OVERFLOW; }],
+			["GT", function() { return !flags.ZERO && flags.NEGATIVE == flags.OVERFLOW; }],
+			["LE", function() { return flags.ZERO || flags.NEGATIVE != flags.OVERFLOW; }],
 			["AL", function() { return true; }],
 			["", function() { return true; }]
 		]
@@ -295,13 +295,49 @@ var commandMap = (function() {
 		if (flexOpSecondPart[0] == "ASR") {
 			return function() {
 				var value = firstPartValue();
-				var signedness = getNthBit(31, value);
-
-				return convToUInt32((value >> flexOpSecondPart[1]));
+				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
+			}
+		}
+		if (flexOpSecondPart[0] == "LSR") {
+			return function() {
+				var value = firstPartValue();
+				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
+			}
+		}
+		if (flexOpSecondPart[0] == "LSL") {
+			return function() {
+				var value = firstPartValue();
+				return convToUInt32((value << flexOpSecondPart[1]));
+			}
+		}
+		// ROR = rotate to right.. right out > left in
+		if (flexOpSecondPart[0] == "ROR") {
+			return function() {
+				var value = firstPartValue();
+				for (i = 0; i < flexOpSecondPart[1]; i++) {
+					out = getNthBit(0, value);
+					value = value >>> 1;
+					value = value | (out << 31);
+				}
+				return convToUInt32(value);
+			}
+		}
+		// RRX = extended Rotate right.. right out > carry-flag > left in
+		if (flexOpSecondPart[0] == "RRX") {
+			return function() {
+				var value = firstPartValue();
+				for (i = 0; i < flexOpSecondPart[1]; i++) {
+					out = getNthBit(0, value);
+					value = value >>> 1;
+					value = value | (flags.CARRY << 31);
+					// registers[7] = out;  debugging reasons
+					flags.CARRY = (out)? true : false;
+				}
+				return convToUInt32(value);
 			}
 		}
 
-		throw new ParseException("Only ASR is implemented yet"); //TODO
+		throw new ParseException("Only ASR is implemented yet"); // TODO: Replace String
 	}
 
 	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
@@ -387,12 +423,12 @@ var commandMap = (function() {
 		["ADC", function(writeStatus, first, second) {
 			/* This is another way to handle it
 			 * var result = (first + second);
-			 * if (FLAGS.CARRY) {result += 1;}
+			 * if (flags.CARRY) {result += 1;}
 			 * result = result % MAX_INTEGER;
 			 *
 			 * Probably the if-clause is slighty faster than multiple calculations.
 			 */
-			if (FLAGS.CARRY) {
+			if (flags.CARRY) {
 				var result = convToUInt32(first + second + 1);
 			} else {
 				var result = convToUInt32(first + second);
@@ -416,7 +452,7 @@ var commandMap = (function() {
 			return result;
 		}],
 		["SBC", function(writeStatus, first, second) {
-			if (FLAGS.CARRY) {
+			if (flags.CARRY) {
 				var result = convToUInt32(first - second);
 			} else {
 				var result = convToUInt32(first - second - 1);
@@ -440,7 +476,7 @@ var commandMap = (function() {
 			return result;
 		}],
 		["RSC", function(writeStatus, first, second) {
-			if (FLAGS.CARRY) {
+			if (flags.CARRY) {
 				var result = convToUInt32(second - first);
 			} else {
 				var result = convToUInt32(second - first - 1);

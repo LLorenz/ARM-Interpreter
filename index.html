@@ -129,7 +129,18 @@
         }
         $scope.destroyAssembled = function() {
           $scope.assembly = undefined;
+		  $scope.resetState();
         }
+		$scope.resetState = function (){
+			for (i = 0; i < 16; i++) {
+				$scope.processorState.register[i] 	= 0;
+			}
+			$scope.processorState.flags.CARRY 		= false;
+			$scope.processorState.flags.ZERO 		= false;
+			$scope.processorState.flags.NEGATIVE 	= false;
+			$scope.processorState.flags.OVERFLOW 	= false;
+			$scope.processorState.flags.PARITY 		= false;
+		}
 
         $scope.next = function() {
           try {
