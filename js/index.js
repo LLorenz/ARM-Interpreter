@@ -636,6 +636,13 @@ function Command(commandString, lineNumber) {
 }
 
 function Assembly(instructions) {
+	/* Label matching structures are currently shared between multiple assemblys.
+	 * We reset these structures here.
+	 */
+	//TODO one set of structures per Assembly
+	symbolTable = {};
+	labelCallbacks = {};
+	labelsMatched = false;
 	instructions = instructions.map(Command);
 
 	matchLabels();
