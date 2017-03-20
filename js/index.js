@@ -286,6 +286,20 @@ var commandMap = (function() {
 
 		// there might be multiple whitespace characters between shift op and operand
 		var flexOpSecondPart = flexOpSecondPart.replace(/\s\s+/g, ' ').split(" ");
+		if (flexOpSecondPart.length == 1) {
+			// RRX = extended Rotate right.. right out > carry-flag > left in - always rotates exactly one bit
+			if (flexOpSecondPart[0].toUpperCase() == "RRX") {
+				return function() {
+					var value = firstPartValue();
+					out = getNthBit(0, value);
+					value = value >>> 1;
+					value = value | (flags.CARRY << 31);
+					// registers[7] = out;  debugging reasons
+					flags.CARRY = (out)? true : false;
+					return convToUInt32(value);
+				}
+			}
+		}
 		if (flexOpSecondPart.length != 2) {
 			// there must be a shift operation and a shift operand
 			// TODO: this is wrong, for RRX no operand allowed
@@ -320,21 +334,6 @@ var commandMap = (function() {
 					out = getNthBit(0, value);
 					value = value >>> 1;
 					value = value | (out << 31);
-				}
-				return convToUInt32(value);
-			}
-		}
-		// RRX = extended Rotate right.. right out > carry-flag > left in
-		// TODO: this only rotates by 1 bit each goddamn time, fix it --> No Second operator 
-		if (flexOpSecondPart[0].toUpperCase() == "RRX") {
-			return function() {
-				var value = firstPartValue();
-				for (i = 0; i < flexOpSecondPart[1]; i++) {
-					out = getNthBit(0, value);
-					value = value >>> 1;
-					value = value | (flags.CARRY << 31);
-					// registers[7] = out;  debugging reasons
-					flags.CARRY = (out)? true : false;
 				}
 				return convToUInt32(value);
 			}
