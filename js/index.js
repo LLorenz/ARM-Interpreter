@@ -282,7 +282,9 @@ var commandMap = (function() {
 		}
 		if (!flexOpSecondPart) {
 			// no shift op, we are done here.
-			return firstPartValue;
+			return function () {
+				return firstPartValue;
+			}
 		}
 
 		// there might be multiple whitespace characters between shift op and operand
