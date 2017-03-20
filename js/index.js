@@ -337,7 +337,7 @@ var commandMap = (function() {
 			}
 		}
 
-		throw new ParseException("Only ASR is implemented yet"); // TODO: Replace String
+		throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!"); // TODO: Replace String
 	}
 
 	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
@@ -519,18 +519,18 @@ var commandMap = (function() {
 		["MOV", function(writeStatus, value) {
 			var result = value;
 			if (writeStatus) {
-				ZERO = (result == 0);
-				NEGATIVE = (result < 0);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = (result < 0);
 				// change C according to eval of second op
 				// dont affect V flag
 			}
 			return result; 
 		}],
 		["MVN", function(writeStatus, value) {
-		   var result = ~ value;
+		   var result = convToUInt32(~value);
 		   if (writeStatus) {
-				ZERO = (result == 0);
-				NEGATIVE = (result < 0);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = (getNthBit(31,result) ? true : false);
 				// change C according to eval of second op
 				// dont affect V flag
 		   }
