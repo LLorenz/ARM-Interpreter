@@ -354,8 +354,10 @@ var commandMap = (function() {
 					return convToUInt32(value);
 				}
 			default:
-				throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!"); // TODO: Replace String
+				throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!");
+				break;
 		}
+
 	}
 
 	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
