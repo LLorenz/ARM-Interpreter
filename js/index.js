@@ -76,6 +76,46 @@ for (var i = 0; i < 16; i++) {
 
 var memory = new Uint8Array(1024*1024) //TODO should be somehow dynamically allocated
 
+// array of undoObjects. Each undoObject has property register (registerss copied) and memory (object which associates memory address to value).
+
+var undoSteps = [];
+
+function newUndoStep() {
+	var undoRegisters = {};
+	for (i = 0; i < 16; i++) {
+		undoRegisters[i] = registers[i];
+	}
+	undoSteps.push({
+		registers: undoRegisters,
+		memory: {}
+	});
+}
+
+function setMemoryAddress(address, value) {
+	if (undoSteps[undoSteps.length - 1].memory[address] === undefined) {
+		// if there already is a value for undoing, it is older. Then, we use that value.
+		undoSteps[undoSteps.length - 1].memory[address] = memory[address];
+	}
+
+	memory[address] = value;
+}
+
+function undoLastStep() {
+	console.log("before", undoSteps);
+	var stepToUndo = undoSteps.pop();
+	console.log("after", undoSteps);
+	for (i = 0; i < 16; i++) {
+		registers[i] = stepToUndo.registers[i];
+	}
+
+	for (var address in stepToUndo.memory) {
+		if (stepToUndo.memory.hasOwnProperty(address)) {
+			console.log("Undoing ", address);
+			memory[address] = stepToUndo.memory[address];
+		}
+	}
+}
+
 var flags = {
 	CARRY: false,
 	ZERO: false,
@@ -603,7 +643,7 @@ var commandMap = (function() {
 
 			return function() {
 
-				memory[getIndirectReference()] = getResult();
+				setMemoryAddress(getIndirectReference(), getResult());
 			}
 		}
 	})
@@ -682,6 +722,7 @@ function Assembly(instructions) {
 	matchLabels();
 	this.step = function() {
 		assert(labelsMatched, "You somehow didn't match the labels. This shouldn't be possible.");
+		newUndoStep();
 		var instructionToExecute = instructions[registers[15]];
 
 		if (!instructionToExecute) {

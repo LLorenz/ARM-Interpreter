@@ -107,6 +107,7 @@
         }
 
     		$scope.resetState = function (){
+          undoSteps = [];
     			for (i = 0; i < 16; i++) {
     				$scope.processorState.register[i] 	= 0;
     			}
@@ -130,6 +131,9 @@
 
         $scope.notImplementedYet = function() {
           alert("Not implemented yet");
+        }
+        $scope.undoLastStep = function() {
+          undoLastStep();
         }
       }).directive('processorState', function() {
         return {
@@ -181,7 +185,7 @@
     <div id="controls">
       <div id="controls-flex">
         <button ng-click="resetState()">&#x21e4</button>
-        <button ng-click="notImplementedYet()">&#x2190</button>
+        <button ng-click="undoLastStep()">&#x2190</button>
         <button ng-click="next()">&#x2192</button>
         <button ng-click="notImplementedYet()">&#x21e5</button></div>
       <div id="controls-inactive" ng-hide="assembly">Press Assemble before running</div>
