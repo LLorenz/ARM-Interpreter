@@ -326,7 +326,7 @@ var commandMap = (function() {
 		}
 		flexOpSecondPart[1] = value;
 		// No breaks needed because return statements
-		switch (flexOpSecondPart[0].toUpperCase() {
+		switch (flexOpSecondPart[0].toUpperCase()) {
 			case "ASR": 
 				return function() {
 					var value = firstPartValue();
