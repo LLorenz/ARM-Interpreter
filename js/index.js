@@ -252,6 +252,7 @@ var commandMap = (function() {
 	 * returns a flexible second operand.
 	 *
 	 */
+	
 	function evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart) {
 		// first, assume this is a constant.
 		var constant;
@@ -307,39 +308,54 @@ var commandMap = (function() {
 		}
 
 		// TODO: this can not only be a number but a register as well. change Parser
-		flexOpSecondPart[1] = parseNumericConstant(flexOpSecondPart[1]);
-		if (flexOpSecondPart[0].toUpperCase() == "ASR") {
-			return function() {
-				var value = firstPartValue();
-				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
+		// TODO: specify exceptions
+		var value;
+		try {
+			value = parseNumericConstant(flexOpSecondPart[1]);
+		} catch (e) {
+			// This is no numeric constant. Might still be a register
+			// throw new ParseException("Can't parse " + flexOpSecondPart[1] + " as constant"); // testing only
+		}
+		if (value == undefined) {
+			try {
+				value = getRegisterFunction(flexOpSecondPart[1]);
+			} catch (e) {
+				// No Register --> Error
+				throw new ParseException("Can't parse " + flexOpSecondPart[1] + " as constant or as register.");
 			}
 		}
-		if (flexOpSecondPart[0].toUpperCase() == "LSR") {
-			return function() {
-				var value = firstPartValue();
-				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
-			}
-		}
-		if (flexOpSecondPart[0].toUpperCase() == "LSL") {
-			return function() {
-				var value = firstPartValue();
-				return convToUInt32((value << flexOpSecondPart[1]));
-			}
-		}
-		// ROR = rotate to right.. right out > left in
-		if (flexOpSecondPart[0].toUpperCase() == "ROR") {
-			return function() {
-				var value = firstPartValue();
-				for (i = 0; i < flexOpSecondPart[1]; i++) {
-					out = getNthBit(0, value);
-					value = value >>> 1;
-					value = value | (out << 31);
+		flexOpSecondPart[1] = value;
+		// No breaks needed because return statements
+		switch (flexOpSecondPart[0].toUpperCase() {
+			case "ASR": 
+				return function() {
+					var value = firstPartValue();
+					return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
 				}
-				return convToUInt32(value);
-			}
+			case "LSR":
+				return function() {
+					var value = firstPartValue();
+					return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
+				}
+			case "LSL": 
+				return function() {
+					var value = firstPartValue();
+					return convToUInt32((value << flexOpSecondPart[1]));
+				}
+			// ROR = rotate to right.. right out > left in
+			case "ROR":
+				return function() {
+					var value = firstPartValue();
+					for (i = 0; i < flexOpSecondPart[1]; i++) {
+						out = getNthBit(0, value);
+						value = value >>> 1;
+						value = value | (out << 31);
+					}
+					return convToUInt32(value);
+				}
+			default:
+				throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!"); // TODO: Replace String
 		}
-
-		throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!"); // TODO: Replace String
 	}
 
 	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
