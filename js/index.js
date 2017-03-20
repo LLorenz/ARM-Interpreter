@@ -288,30 +288,32 @@ var commandMap = (function() {
 		var flexOpSecondPart = flexOpSecondPart.replace(/\s\s+/g, ' ').split(" ");
 		if (flexOpSecondPart.length != 2) {
 			// there must be a shift operation and a shift operand
+			// TODO: this is wrong, for RRX no operand allowed
 			throw new ParseException("Cannot parse arguments");
 		}
 
+		// TODO: this can not only be a number but a register as well. change Parser
 		flexOpSecondPart[1] = parseNumericConstant(flexOpSecondPart[1]);
-		if (flexOpSecondPart[0] == "ASR") {
+		if (flexOpSecondPart[0].toUpperCase() == "ASR") {
 			return function() {
 				var value = firstPartValue();
 				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
 			}
 		}
-		if (flexOpSecondPart[0] == "LSR") {
+		if (flexOpSecondPart[0].toUpperCase() == "LSR") {
 			return function() {
 				var value = firstPartValue();
 				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
 			}
 		}
-		if (flexOpSecondPart[0] == "LSL") {
+		if (flexOpSecondPart[0].toUpperCase() == "LSL") {
 			return function() {
 				var value = firstPartValue();
 				return convToUInt32((value << flexOpSecondPart[1]));
 			}
 		}
 		// ROR = rotate to right.. right out > left in
-		if (flexOpSecondPart[0] == "ROR") {
+		if (flexOpSecondPart[0].toUpperCase() == "ROR") {
 			return function() {
 				var value = firstPartValue();
 				for (i = 0; i < flexOpSecondPart[1]; i++) {
@@ -323,7 +325,8 @@ var commandMap = (function() {
 			}
 		}
 		// RRX = extended Rotate right.. right out > carry-flag > left in
-		if (flexOpSecondPart[0] == "RRX") {
+		// TODO: this only rotates by 1 bit each goddamn time, fix it --> No Second operator 
+		if (flexOpSecondPart[0].toUpperCase() == "RRX") {
 			return function() {
 				var value = firstPartValue();
 				for (i = 0; i < flexOpSecondPart[1]; i++) {
