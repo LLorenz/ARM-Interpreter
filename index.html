@@ -76,32 +76,6 @@
           register: registers,
           flags: flags
         };
-        $scope.enteredCommand = "";
-        $scope.executeCommand = function() {
-          var commandString = $scope.enteredCommand;
-          var command;
-          try {
-            command = Command(commandString);
-          } catch (e) {
-            if (!e instanceof ParseException) {
-              throw e;
-            }
-
-            alert("Error parsing: " + e.message);
-            console.log(e);
-          }
-
-          try {
-            command();
-          } catch (e) {
-            if (!e instanceof RuntimeException) {
-              throw e;
-            }
-
-            alert("Error at runtime: " + e.message);
-            console.log(e)
-          }
-        }
         $scope.normalizeInput = function(register) {
           $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
         }
@@ -129,18 +103,19 @@
         }
         $scope.destroyAssembled = function() {
           $scope.assembly = undefined;
-		  $scope.resetState();
+		      $scope.resetState();
         }
-		$scope.resetState = function (){
-			for (i = 0; i < 16; i++) {
-				$scope.processorState.register[i] 	= 0;
-			}
-			$scope.processorState.flags.CARRY 		= false;
-			$scope.processorState.flags.ZERO 		= false;
-			$scope.processorState.flags.NEGATIVE 	= false;
-			$scope.processorState.flags.OVERFLOW 	= false;
-			$scope.processorState.flags.PARITY 		= false;
-		}
+
+    		$scope.resetState = function (){
+    			for (i = 0; i < 16; i++) {
+    				$scope.processorState.register[i] 	= 0;
+    			}
+    			$scope.processorState.flags.CARRY 		= false;
+    			$scope.processorState.flags.ZERO 		= false;
+    			$scope.processorState.flags.NEGATIVE 	= false;
+    			$scope.processorState.flags.OVERFLOW 	= false;
+    			$scope.processorState.flags.PARITY 		= false;
+    		}
 
         $scope.next = function() {
           try {
@@ -190,7 +165,7 @@
     <processor-state></processor-state>
     <div id="controls">
       <div id="controls-flex">
-        <button ng-click="notImplementedYet()">&#x21e4</button>
+        <button ng-click="resetState()">&#x21e4</button>
         <button ng-click="notImplementedYet()">&#x2190</button>
         <button ng-click="next()">&#x2192</button>
         <button ng-click="notImplementedYet()">&#x21e5</button></div>
