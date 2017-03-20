@@ -332,24 +332,24 @@ var commandMap = (function() {
 			case "ASR": 
 				return function() {
 					if (typeof(flexOpSecondPart[1]) === 'function') {
-            flexOpSecondPart[1] = flexOpSecondPart[1]();
-          }
+						flexOpSecondPart[1] = flexOpSecondPart[1]();
+					}
 					var value = firstPartValue();
 					return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
 				}
 			case "LSR":
 				return function() {
 					if (typeof(flexOpSecondPart[1]) === 'function') {
-            flexOpSecondPart[1] = flexOpSecondPart[1]();
-          }
+						flexOpSecondPart[1] = flexOpSecondPart[1]();
+					}
 					var value = firstPartValue();
 					return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
 				}
 			case "LSL": 
 				return function() {
 					if (typeof(flexOpSecondPart[1]) === 'function') {
-            flexOpSecondPart[1] = flexOpSecondPart[1]();
-          }
+						flexOpSecondPart[1] = flexOpSecondPart[1]();
+					}
 					var value = firstPartValue();
 					return convToUInt32((value << flexOpSecondPart[1]));
 				}
@@ -357,8 +357,8 @@ var commandMap = (function() {
 			case "ROR":
 				return function() {
 					if (typeof(flexOpSecondPart[1]) === 'function') {
-            flexOpSecondPart[1] = flexOpSecondPart[1]();
-          }
+						flexOpSecondPart[1] = flexOpSecondPart[1]();
+					}
 					var value = firstPartValue();
 					for (i = 0; i < flexOpSecondPart[1]; i++) {
 						out = getNthBit(0, value);

@@ -104,9 +104,10 @@ processor-state {
 
 .register-table td {
 	padding: 0.3em 0;
+	text-align: center;
 }
 
-.register-table td:nth-child(1) {
+.register-table#registers td:nth-child(1) {
 	padding-left: 5px;
 	padding-right: 5px;
 	font-weight:bold;
@@ -114,21 +115,34 @@ processor-state {
 	line-height: 1.25em;
 }
 
-.register-table td:nth-child(2) {
+.register-table#registers td:nth-child(2) {
 	padding-right: 5px;
 }
 
-.register-table td:nth-child(2) > * {
+.register-table#registers td:nth-child(2) > * {
 	display:block;
 	width:100%;
 	min-width: 1.25em;
 	height:1.25em;
 }
 
+.register-table#flags td {
+	padding-left: 5px;
+	/*padding-right: 5px;*/
+	font-weight: bold;
+	font-size: 1em;
+	line-height: 1.25em;
+}
+.register-table#flags td > * {
+	display: block;
+	width: 100%;
+	min-width: 1.25em;
+	height: 1.25em;
+}
+
 .register-table tr:nth-child(odd) {
 	background-color:rgba(50, 50, 255, 0.8);
 }
-
 .register-table tr:nth-child(even) {
 	background-color:rgba(150, 150, 255, 0.8);
 }

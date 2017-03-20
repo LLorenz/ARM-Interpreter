@@ -166,18 +166,33 @@
 
     <script type="text/ng-template" id="processorStateDirectiveTemplate.html">
       <h2>Registers</h2>
-      <table class="register-table">
+	  <table class="register-table" id="registers">
         <tr ng-repeat="register in processorState.register track by $index">
           <td>R{{$index}}</td><td><input type="number" ng-model="processorState.register[$index]" ng-change="normalizeInput($index)"></td>
         </tr>
       </table>
       <h2>Flags</h2>
-      <table class="register-table">
-        <tr><td>Carry</td><td><input type="checkbox" ng-model="processorState.flags.CARRY"></td></tr>
+      <table class="register-table" id="flags">
+		<tr>
+			<td title="Carry" width="20%"> C </td>
+			<td title="Zero" width="20%"> Z </td>
+			<td title="Negative" width="20%"> N </td>
+			<td title="Overflow" width="20%"> O </td>
+			<td title="Parity" width="20%"> P </td>
+		</tr>
+		<tr>
+			<td><input type="checkbox" ng-model="processorState.flags.CARRY"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.ZERO"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.PARITY"></td>
+		</tr>
+	    <!--
+		<tr><td>Carry</td><td><input type="checkbox" ng-model="processorState.flags.CARRY"></td></tr>
         <tr><td>Zero</td><td><input type="checkbox" ng-model="processorState.flags.ZERO"></td></tr>
         <tr><td>Negative</td><td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td></tr>
         <tr><td>Overflow</td><td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td></tr>
-        <tr><td>Parity</td><td><input type="checkbox" ng-model="processorState.flags.PARITY"></td></tr>
+        <tr><td>Parity</td><td><input type="checkbox" ng-model="processorState.flags.PARITY"></td></tr> -->
       </table>
     </script>
   </head>
