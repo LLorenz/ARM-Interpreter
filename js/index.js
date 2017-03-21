@@ -709,7 +709,13 @@ function Command(commandString, lineNumber) {
 	return command;
 }
 
-function Assembly(instructions) {
+function Assembly(instructions, isBreakpoint) {
+	// in our application, this should always be a function. For generic use, we also support undefined.
+	if (!isBreakpoint) {
+		isBreakpoint = function() {
+			return false;
+		}
+	}
 	/* Label matching structures are currently shared between multiple assemblys.
 	 * We reset these structures here.
 	 */
@@ -734,6 +740,23 @@ function Assembly(instructions) {
 			//This is NOT a branch. Therefore, we increment R15 to point to the next instruction.
 			registers[15]++;
 		}
+	}
+
+	this.run = function(doneCallback) {
+		var aborted = false;
+		var that = this;
+		function nextStep() {
+			that.step();
+			if (isBreakpoint(registers[15]) || aborted) {
+				doneCallback();
+			} else {
+				setTimeout(nextStep, 0);
+			}
+		}
+		setTimeout(nextStep, 0);
+		return function() {
+			aborted = true;
+		};
 	}
 }
 

@@ -161,7 +161,7 @@ processor-state {
 	right:0;
 }
 
-#controls-inactive {
+.controls-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -194,4 +194,24 @@ h2 {
 	margin-left:0.8em;
 	margin-bottom: 0.3em;
 	margin-top: 0.8em;
+}
+
+#abortModal {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	text-align: center;
+	background-color: white;
+	opacity: 0.5;
+	z-index: 1000;
+}
+
+#abortModal > * {
+	position: absolute;
+	top: calc(50% - 0.5em);
+	left: 0;
+	right: 0;
+	text-align: center;
 }

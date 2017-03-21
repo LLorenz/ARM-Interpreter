@@ -91,7 +91,7 @@
         $scope.assembleTextBox = function() {
           var assembler = $scope.assemblerTextBox.split("\n");
           try {
-            $scope.assembly = new Assembly(assembler);
+            $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
           } catch (e) {
             if (!e instanceof ParseException) {
               throw e;
@@ -121,6 +121,30 @@
         $scope.next = function() {
           try {
             $scope.assembly.step();
+          } catch (e) {
+            if (!e instanceof RuntimeException) {
+              throw e;
+            }
+            alert("Error at runtime: " + e.message);
+          }
+        }
+
+        $scope.run = function() {
+          try {
+            var showAbortCallback = $timeout(function() {
+              // only show after 200 ms
+              $scope.abortRunCallback.showAbort = true;
+            }, 200);
+            var abortCallback = $scope.assembly.run(function() {
+              $scope.$apply(function() {
+                $timeout.cancel(showAbortCallback);
+                $scope.abortRunCallback = undefined;
+              });
+            });
+            $scope.abortRunCallback = function() {
+              abortCallback();
+              $scope.abortRunCallback = undefined;
+            }
           } catch (e) {
             if (!e instanceof RuntimeException) {
               throw e;
@@ -176,19 +200,23 @@
     </script>
   </head>
   <body ng-controller="MainCtrl">
+    <div id="abortModal" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
+      <div>Abort run</div>
+    </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input" ng-submit="assembleOrDestroy()">
-      <input id="assembleSubmit" type="submit" value="{{assembly ? 'Edit' : 'Assemble'}}">
+      <input id="assembleSubmit" type="submit" value="{{assembly ? 'Edit' : 'Assemble'}}" ng-disabled="abortRunCallback">
     </form>
     <div id="console">Konsole - im Moment ohne Funktion<span class="cursor">&nbsp;</span></div>
     <processor-state></processor-state>
     <div id="controls">
       <div id="controls-flex">
-        <button ng-click="resetState()">&#x21e4</button>
-        <button ng-click="undoLastStep()">&#x2190</button>
-        <button ng-click="next()">&#x2192</button>
-        <button ng-click="notImplementedYet()">&#x21e5</button></div>
-      <div id="controls-inactive" ng-hide="assembly">Press Assemble before running</div>
+        <button ng-click="resetState()">&#x21e4;</button>
+        <button ng-click="undoLastStep()">&#x2190;</button>
+        <button ng-click="next()">&#x2192;</button>
+        <button ng-click="run()">&#x21e5;</button></div>
+        <div class="controls-overlay" ng-hide="assembly">Press Assemble before running</div>
+        <div class="controls-overlay" ng-show="abortRunCallback">&nbsp;</div>
     </div>
   </body>
 </html>
