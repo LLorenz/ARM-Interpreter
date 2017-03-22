@@ -293,7 +293,7 @@ var commandMap = (function() {
 	 *
 	 */
 	
-	function evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart) {
+	function evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus) {
 		// first, assume this is a constant.
 		var constant;
 		try {
@@ -323,7 +323,7 @@ var commandMap = (function() {
 		if (!flexOpSecondPart) {
 			// no shift op, we are done here.
 			return function () {
-				return firstPartValue;
+				return firstPartValue();
 			}
 		}
 
@@ -349,7 +349,7 @@ var commandMap = (function() {
 			throw new ParseException("Cannot parse arguments");
 		}
 
-		// TODO: this can not only be a number but a register as well. change Parser
+		// TODO: Can we save us the if-clauses in switch below, if we do this as a function call?
 		// TODO: specify exceptions
 		var value;
 		try {
@@ -367,51 +367,66 @@ var commandMap = (function() {
 			}
 		}
 		flexOpSecondPart[1] = value;
-		// No breaks needed because return statements
+		
+		/* No breaks needed because return statements
+		 *
+		 * 	If S is specified, these instructions update the N and Z flags according to the result. TODO: do they 
+		 *  The C flag is unaffected if the shift value is 0. Otherwise, the C flag is updated to the last bit shifted out.
+		 */
 		switch (flexOpSecondPart[0].toUpperCase()) {
 			case "ASR": 
 				return function() {
+					var value = firstPartValue();
 					if (typeof(flexOpSecondPart[1]) === 'function') {
 						flexOpSecondPart[1] = flexOpSecondPart[1]();
 					}
-					var value = firstPartValue();
+					if (writeStatus) {
+						flags.CARRY = getNthBit(flexOpSecondPart[1]-1,value) ? true : false;
+					}
 					return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
 				}
 			case "LSR":
 				return function() {
+					var value = firstPartValue();
 					if (typeof(flexOpSecondPart[1]) === 'function') {
 						flexOpSecondPart[1] = flexOpSecondPart[1]();
 					}
-					var value = firstPartValue();
+					if (writeStatus) {
+						flags.CARRY = getNthBit(flexOpSecondPart[1]-1,value) ? true : false;
+					}
 					return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
 				}
 			case "LSL": 
 				return function() {
+					var value = firstPartValue();
 					if (typeof(flexOpSecondPart[1]) === 'function') {
 						flexOpSecondPart[1] = flexOpSecondPart[1]();
 					}
-					var value = firstPartValue();
+					if (writeStatus) {
+						flags.CARRY = getNthBit(31-flexOpSecondPart[1]+1,value) ? true : false;
+					}
 					return convToUInt32((value << flexOpSecondPart[1]));
 				}
 			// ROR = rotate to right.. right out > left in
 			case "ROR":
 				return function() {
+					var value = firstPartValue();
 					if (typeof(flexOpSecondPart[1]) === 'function') {
 						flexOpSecondPart[1] = flexOpSecondPart[1]();
 					}
-					var value = firstPartValue();
+					var out;
 					for (i = 0; i < flexOpSecondPart[1]; i++) {
 						out = getNthBit(0, value);
 						value = value >>> 1;
 						value = value | (out << 31);
 					}
+					flags.CARRY = out ? true : false;
 					return convToUInt32(value);
 				}
 			default:
 				throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!");
 				break;
 		}
-
 	}
 
 	/* ARITHMETIC OPERATIONS (ADD, SUB, RSB, ADC, SBC, and RSC)
@@ -575,6 +590,121 @@ var commandMap = (function() {
 		}]
 	].forEach(function(array) {
 		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
+	});
+	
+	/* LOGICAL OPERATIONS (AND, ORR, EOR, BIC)
+	 * All 4 operations are implemented in a similar way, see arith() for comparison
+	 */
+	// The function to use for logical operators is pretty much identical to the one used for arith operators, as they get the same amount and type of arguments
+	function logic(logicalOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart){
+		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
+		var setResult = setRegisterFunction(result);
+		var getFirstOp = getRegisterFunction(firstOp);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		return function() {
+			setResult(logicalOperator(writeStatus, getFirstOp(), getSecondOp()));
+		}
+	}
+	[
+		["AND", function(writeStatus, first, second) {
+			var result = (first & second);
+			if (writeStatus) {
+				// change status accordingly
+				flags.ZERO = (result == 0);
+				// flags.CARRY results from bitshift-operator
+				flags.NEGATIVE = getNthBit(31, result)? true:false;
+			}
+			return result;
+		}],
+		["ORR", function(writeStatus, first, second) {
+			var result = first | second;
+			if (writeStatus) {
+				// change status accordingly
+				flags.ZERO = (result == 0);
+				// flags.CARRY results from bitshift-operator
+				flags.NEGATIVE = getNthBit(31, result)? true:false;
+			}
+			return result;
+		}],
+		["EOR", function(writeStatus, first, second) {
+			var result = first ^ second;
+			if (writeStatus) {
+				// change status accordingly
+				flags.ZERO = (result == 0);
+				// flags.CARRY results from bitshift-operator
+				flags.NEGATIVE = getNthBit(31, result)? true:false;
+			}
+			return result;
+		}],
+		["BIC", function(writeStatus, first, second) {
+			var result = first & ~second;
+			if (writeStatus) {
+				// change status accordingly
+				flags.ZERO = (result == 0);
+				// flags.CARRY results from bitshift-operator
+				flags.NEGATIVE = getNthBit(31, result)? true:false;
+			}
+			return result;
+		}]
+	].forEach(function(array) {
+		populateCommandMap(array[0] + "<cond><S>", logic.bind(null, array[1]));
+	});
+	
+	/* COMPARING OPERATIONS (TST, TEQ, CMP, CMN)
+	 * All 4 operations are implemented in a similar way, see arith() for comparison
+	 *
+	 * The function used for comparing algorithms is slighty differing, as we do have neither a target register nor the set flag directive
+	 *
+	 * Comparing functions > only set Flags > no returns 
+	 * TODO:
+	 * please test flag setting according to ARM manual
+	 * probably clean results as returns (thinking 1/0) would be better than no result
+	 */
+	 // how is comparison handled when called (no writestatus / result needed --> minimize ?
+	function comp(compOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart){
+		assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
+		// var setResult = setRegisterFunction(result); relict from copy-pasting arith
+		var getFirstOp = getRegisterFunction(firstOp);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		return function() {
+			setResult(compOperator(writeStatus, getFirstOp(), getSecondOp()));
+			//setResult(compOperator(writeStatus, getFirstOp(), getSecondOp())); // . original
+		}
+	}
+	[
+		["CMP", function(writeStatus, first, second) {
+			var result = convToUInt32(first - second);
+			flags.ZERO = (result == 0);
+			flags.NEGATIVE = getNthBit(31,result) ? true : false;
+			flags.CARRY = !(first - second < 0);
+			// flags.OVERFLOW case substraction: 
+			flags.OVERFLOW = getNthBit(31,first) != getNthBit(31,second) && getNthBit(31,first) != getNthBit(31,result);
+		}],
+		["CMN", function(writeStatus, first, second) {
+			// TODO: correct? - reference manual 4.1.14 CMN
+			var result = convToUInt32(first + second);
+			flags.ZERO = (result == 0);
+			flags.NEGATIVE = getNthBit(31,result) ? true : false;
+			flags.CARRY = (first+second) >= MAX_INTEGER;
+			// flags.OVERFLOW case addition: 
+			flags.OVERFLOW = getNthBit(31,first) == getNthBit(31,second) && getNthBit(31,first) != getNthBit(31,result);
+		}],
+		["TEQ", function(writeStatus, first, second) {
+			var result = convToUInt32(first ^ second);
+			flags.ZERO = (result == 0);
+			flags.NEGATIVE = getNthBit(31,result) ? true : false;
+			// flags.CARRY set from barrelShift
+			// flags.OVERFLOW unaffected
+		}],
+		["TST", function(writeStatus, first, second) {
+			var result = convToUInt32(first & second);
+			flags.ZERO = (result == 0);
+			flags.NEGATIVE = getNthBit(31,result) ? true : false;
+			// flags.CARRY set from barrelShift
+			// flags.OVERFLOW unaffected
+		}]
+	].forEach(function(array) {
+		populateCommandMap(array[0] + "<cond>", comp.bind(null, array[1]));
 	});
 
 	/* MOVING OPERATIONS (MOV, MVN)
