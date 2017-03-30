@@ -147,7 +147,7 @@ processor-state {
 	background-color:rgba(150, 150, 255, 0.8);
 }
 
-.register-table input[type=number] {
+.register-table input {
 	background-color: rgba(255, 255, 255, 0.7);
 	font-size:1em;
 	line-height:1.25em;

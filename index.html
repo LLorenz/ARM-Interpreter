@@ -77,6 +77,8 @@
           flags: flags
         };
         $scope.normalizeInput = function(register) {
+          $scope.processorState.register[register] = parseInt($scope.processorState.register[register]);
+          $scope.processorState.register[register] = isNaN($scope.processorState.register[register]) ? 0 : $scope.processorState.register[register];
           $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
         }
 
@@ -171,7 +173,7 @@
       <h2>Registers</h2>
 	  <table class="register-table" id="registers">
         <tr ng-repeat="register in processorState.register track by $index">
-          <td>R{{$index}}</td><td><input type="number" ng-model="processorState.register[$index]" ng-change="normalizeInput($index)"></td>
+          <td>R{{$index}}</td><td><input type="text" ng-model="processorState.register[$index]" ng-blur="normalizeInput($index)"></td>
         </tr>
       </table>
       <h2>Flags</h2>
