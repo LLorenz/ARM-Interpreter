@@ -179,18 +179,16 @@
       <h2>Flags</h2>
       <table class="register-table" id="flags">
 		<tr>
-			<td title="Carry" width="20%"> C </td>
-			<td title="Zero" width="20%"> Z </td>
 			<td title="Negative" width="20%"> N </td>
-			<td title="Overflow" width="20%"> O </td>
-			<td title="Parity" width="20%"> P </td>
+			<td title="Zero" width="20%"> Z </td>
+			<td title="Carry" width="20%"> C </td>
+			<td title="Overflow" width="20%"> V </td>
 		</tr>
 		<tr>
-			<td><input type="checkbox" ng-model="processorState.flags.CARRY"></td>
-			<td><input type="checkbox" ng-model="processorState.flags.ZERO"></td>
 			<td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.ZERO"></td>
+			<td><input type="checkbox" ng-model="processorState.flags.CARRY"></td>
 			<td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td>
-			<td><input type="checkbox" ng-model="processorState.flags.PARITY"></td>
 		</tr>
 	    <!--
 		<tr><td>Carry</td><td><input type="checkbox" ng-model="processorState.flags.CARRY"></td></tr>

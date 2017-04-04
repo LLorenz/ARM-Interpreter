@@ -441,7 +441,7 @@ var commandMap = (function() {
 		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
 		return function() {
 			setResult(arithOperator(writeStatus, getFirstOp(), getSecondOp()));
 		}
@@ -600,7 +600,7 @@ var commandMap = (function() {
 		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
 		return function() {
 			setResult(logicalOperator(writeStatus, getFirstOp(), getSecondOp()));
 		}
@@ -665,7 +665,7 @@ var commandMap = (function() {
 		assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
 		// var setResult = setRegisterFunction(result); relict from copy-pasting arith
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
 		return function() {
 			setResult(compOperator(writeStatus, getFirstOp(), getSecondOp()));
 			//setResult(compOperator(writeStatus, getFirstOp(), getSecondOp())); // . original
@@ -713,7 +713,7 @@ var commandMap = (function() {
 	function mov(movOperator, writeStatus, result, flexOpFirstPart, flexOpSecondPart) {
 		//assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
-		var getValue = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart);
+		var getValue = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus);
 		return function() {
 			setResult(movOperator(writeStatus, getValue()));
 		}
