@@ -157,8 +157,12 @@ processor-state {
 #controls {
 	height:2em;
 	bottom:0;
-	width:20%;
+	width:100%;
 	right:0;
+}
+
+#controlContainer {
+	display:flex;
 }
 
 .controls-overlay {
@@ -175,6 +179,27 @@ processor-state {
 	line-height: 1.2em;
 	background-color: #dedeff;
 	opacity: 0.5;
+}
+
+#fileInteraction{
+	width:30%;
+}
+#fileInteractionContainer {
+	width:100%;
+	height:100%;
+	display:flex;
+	flex-direction:row;
+}
+#fileInteractionContainer > * {
+	flex: 1 1 auto;
+}
+
+#assembleContainer {
+	width:40%;
+}
+
+#controls {
+	width:30%;
 }
 
 #controls-flex {

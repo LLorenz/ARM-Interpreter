@@ -9,7 +9,7 @@ function ParseException(message) {
 
 ParseException.prototype = Object.create(Error.prototype)
 
-// Constructor for exceptions encountered during parsing.
+	// Constructor for exceptions encountered during parsing.
 function UnknownLabelException(message) {
 	this.name = "UnknownLabelException";
 	this.message = message;
@@ -25,25 +25,25 @@ function RuntimeException(message) {
 	this.stack = (new Error()).stack;
 };
 
-RuntimeException.prototype = Object.create(Error.prototype)
+RuntimeException.prototype = Object.create(Error.prototype);
 
 var labelsMatched = false;
 var symbolTable = {};
 var labelCallbacks = {};
 function matchLabels() {
-  for (label in symbolTable) {
-    if (labelCallbacks[label]) {
-      labelCallbacks[label].forEach(function(callbackItem) {
-        callbackItem.callback(symbolTable[label]);
-      })
-      delete labelCallbacks[label];
-    }
-  }
-  for (label in labelCallbacks) {
-    labelCallbacks.label.forEach(function(callbackItem) {
- 		  throw new UnknownLabelException(callbackItem.errorString);
-    })
-  }
+	for (label in symbolTable) {
+		if (labelCallbacks[label]) {
+			labelCallbacks[label].forEach(function (callbackItem) {
+				callbackItem.callback(symbolTable[label]);
+			})
+			delete labelCallbacks[label];
+		}
+	}
+	for (label in labelCallbacks) {
+		labelCallbacks.label.forEach(function (callbackItem) {
+			throw new UnknownLabelException(callbackItem.errorString);
+		})
+	}
 	labelsMatched = true;
 }
 
@@ -68,17 +68,16 @@ function getNthBit(bit, number) {
 	return (number >> bit) % 2;
 }
 
-
 var registers = [];
 for (var i = 0; i < 16; i++) {
 	registers.push(0);
 }
 
-var memory = new Uint8Array(1024*1024) //TODO should be somehow dynamically allocated
+var memory = new Uint8Array(1024 * 1024) //TODO should be somehow dynamically allocated
 
-// array of undoObjects. Each undoObject has property register (registerss copied) and memory (object which associates memory address to value).
+	// array of undoObjects. Each undoObject has property register (registerss copied) and memory (object which associates memory address to value).
 
-var undoSteps = [];
+	var undoSteps = [];
 
 function newUndoStep() {
 	var undoRegisters = {};
@@ -135,7 +134,7 @@ var flags = {
  * CommandMap construction is a bit complicated (see below), for that reason, it
  * is wrapped inside of a IIFE.
  */
-var commandMap = (function() {
+var commandMap = (function () {
 	var returner = new Map();
 
 	/* Many operations on ARM have different opcodes, but do practically the same.
@@ -164,7 +163,7 @@ var commandMap = (function() {
 			if (name.indexOf("<S>") != -1) {
 				var func = command.bind(null, false);
 				func.isBranch = isBranch;
-				returner.set(name.replace("<S>", "" ), func);
+				returner.set(name.replace("<S>", ""), func);
 				func = command.bind(null, true);
 				func.isBranch = isBranch;
 				returner.set(name.replace("<S>", "S"), func);
@@ -175,24 +174,78 @@ var commandMap = (function() {
 		}
 
 		var conditionCodes = [
-			["EQ", function() { return flags.ZERO; }],
-			["NE", function() { return !flags.ZERO; }],
-			["CS", function() { return flags.CARRY; }],
-			["HS", function() { return flags.CARRY; }],
-			["CC", function() { return !flags.CARRY; }],
-			["LO", function() { return !flags.CARRY; }],
-			["MI", function() { return flags.NEGATIVE; }],
-			["PL", function() { return !flags.NEGATIVE; }],
-			["VS", function() { return flags.OVERFLOW; }],
-			["VC", function() { return !flags.OVERFLOW; }],
-			["HI", function() { return flags.CARRY && !flags.ZERO; }],
-			["LS", function() { return !flags.CARRY || flags.ZERO; }],
-			["GE", function() { return flags.NEGATIVE == flags.OVERFLOW; }],
-			["LT", function() { return flags.NEGATIVE != flags.OVERFLOW; }],
-			["GT", function() { return !flags.ZERO && flags.NEGATIVE == flags.OVERFLOW; }],
-			["LE", function() { return flags.ZERO || flags.NEGATIVE != flags.OVERFLOW; }],
-			["AL", function() { return true; }],
-			["", function() { return true; }]
+			["EQ", function () {
+					return flags.ZERO;
+				}
+			],
+			["NE", function () {
+					return !flags.ZERO;
+				}
+			],
+			["CS", function () {
+					return flags.CARRY;
+				}
+			],
+			["HS", function () {
+					return flags.CARRY;
+				}
+			],
+			["CC", function () {
+					return !flags.CARRY;
+				}
+			],
+			["LO", function () {
+					return !flags.CARRY;
+				}
+			],
+			["MI", function () {
+					return flags.NEGATIVE;
+				}
+			],
+			["PL", function () {
+					return !flags.NEGATIVE;
+				}
+			],
+			["VS", function () {
+					return flags.OVERFLOW;
+				}
+			],
+			["VC", function () {
+					return !flags.OVERFLOW;
+				}
+			],
+			["HI", function () {
+					return flags.CARRY && !flags.ZERO;
+				}
+			],
+			["LS", function () {
+					return !flags.CARRY || flags.ZERO;
+				}
+			],
+			["GE", function () {
+					return flags.NEGATIVE == flags.OVERFLOW;
+				}
+			],
+			["LT", function () {
+					return flags.NEGATIVE != flags.OVERFLOW;
+				}
+			],
+			["GT", function () {
+					return !flags.ZERO && flags.NEGATIVE == flags.OVERFLOW;
+				}
+			],
+			["LE", function () {
+					return flags.ZERO || flags.NEGATIVE != flags.OVERFLOW;
+				}
+			],
+			["AL", function () {
+					return true;
+				}
+			],
+			["", function () {
+					return true;
+				}
+			]
 		]
 
 		/* We first do the <cond> part and let populateCommandMapConditionsSolved
@@ -201,11 +254,11 @@ var commandMap = (function() {
 		if (name.indexOf("<cond>") == -1) {
 			populateCommandMapConditionsSolved(name, command);
 		} else {
-			conditionCodes.forEach(function(conditionArray) {
-				populateCommandMapConditionsSolved(name.replace("<cond>", conditionArray[0]), function() {
+			conditionCodes.forEach(function (conditionArray) {
+				populateCommandMapConditionsSolved(name.replace("<cond>", conditionArray[0]), function () {
 					// this operation shall be executed if condition is true
 					var operation = command.apply(null, arguments);
-					return function() {
+					return function () {
 						if (conditionArray[1]()) {
 							operation();
 						}
@@ -223,7 +276,7 @@ var commandMap = (function() {
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
 		var registerIndex = registerStringArray[1];
-		return function(value) {
+		return function (value) {
 			registers[registerIndex] = value;
 		}
 	}
@@ -236,25 +289,25 @@ var commandMap = (function() {
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
 		var registerIndex = registerStringArray[1];
-		return function(value) {
+		return function (value) {
 			return registers[registerIndex];
 		}
 	}
 
 	function getLabelFunction(which, errorString) {
-	  assert(!labelsMatched, "Labels are already matched");
-	  var address;
-	  labelCallbacks[which] = labelCallbacks[which] || [];
+		assert(!labelsMatched, "Labels are already matched");
+		var address;
+		labelCallbacks[which] = labelCallbacks[which] || [];
 		labelCallbacks[which].push({
-			callback: function(addressToSet) {
+			callback: function (addressToSet) {
 				address = addressToSet;
 			},
 			errorString: "Unknown label " + which
 		});
-	  return function() {
+		return function () {
 			assert(address != undefined, "Unknown error. This shouldn't happen. Maybe matchLabels() wasn't called")
-	    return address;
-	  }
+			return address;
+		}
 	}
 
 	/* Returns the number denoted by the numeric constant. If this is not a
@@ -292,13 +345,13 @@ var commandMap = (function() {
 	 * returns a flexible second operand.
 	 *
 	 */
-	
+
 	function evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus) {
 		// first, assume this is a constant.
 		var constant;
 		try {
 			constant = parseNumericConstant(flexOpFirstPart);
-		} catch(e) {
+		} catch (e) {
 			// this is no numeric constant. Don't throw yet, it might be something else.
 		}
 
@@ -307,7 +360,7 @@ var commandMap = (function() {
 			 * by the ARM standard. This is currently not checked.
 			 */
 			assert(!flexOpSecondPart, "Can't parse flexible operator, did you add a parameter too much?");
-			return function() {
+			return function () {
 				return constant;
 			}
 		}
@@ -332,13 +385,13 @@ var commandMap = (function() {
 		if (flexOpSecondPart.length == 1) {
 			// RRX = extended Rotate right.. right out > carry-flag > left in - always rotates exactly one bit
 			if (flexOpSecondPart[0].toUpperCase() == "RRX") {
-				return function() {
+				return function () {
 					var value = firstPartValue();
 					out = getNthBit(0, value);
 					value = value >>> 1;
 					value = value | (flags.CARRY << 31);
 					// registers[7] = out;  debugging reasons
-					flags.CARRY = (out)? true : false;
+					flags.CARRY = (out) ? true : false;
 					return convToUInt32(value);
 				}
 			}
@@ -367,65 +420,65 @@ var commandMap = (function() {
 			}
 		}
 		flexOpSecondPart[1] = value;
-		
+
 		/* No breaks needed because return statements
 		 *
-		 * 	If S is specified, these instructions update the N and Z flags according to the result. TODO: do they 
+		 * 	If S is specified, these instructions update the N and Z flags according to the result. TODO: do they
 		 *  The C flag is unaffected if the shift value is 0. Otherwise, the C flag is updated to the last bit shifted out.
 		 */
 		switch (flexOpSecondPart[0].toUpperCase()) {
-			case "ASR": 
-				return function() {
-					var value = firstPartValue();
-					if (typeof(flexOpSecondPart[1]) === 'function') {
-						flexOpSecondPart[1] = flexOpSecondPart[1]();
-					}
-					if (writeStatus) {
-						flags.CARRY = getNthBit(flexOpSecondPart[1]-1,value) ? true : false;
-					}
-					return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
+		case "ASR":
+			return function () {
+				var value = firstPartValue();
+				if (typeof(flexOpSecondPart[1]) === 'function') {
+					flexOpSecondPart[1] = flexOpSecondPart[1]();
 				}
-			case "LSR":
-				return function() {
-					var value = firstPartValue();
-					if (typeof(flexOpSecondPart[1]) === 'function') {
-						flexOpSecondPart[1] = flexOpSecondPart[1]();
-					}
-					if (writeStatus) {
-						flags.CARRY = getNthBit(flexOpSecondPart[1]-1,value) ? true : false;
-					}
-					return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
+				if (writeStatus) {
+					flags.CARRY = getNthBit(flexOpSecondPart[1] - 1, value) ? true : false;
 				}
-			case "LSL": 
-				return function() {
-					var value = firstPartValue();
-					if (typeof(flexOpSecondPart[1]) === 'function') {
-						flexOpSecondPart[1] = flexOpSecondPart[1]();
-					}
-					if (writeStatus) {
-						flags.CARRY = getNthBit(31-flexOpSecondPart[1]+1,value) ? true : false;
-					}
-					return convToUInt32((value << flexOpSecondPart[1]));
+				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
+			}
+		case "LSR":
+			return function () {
+				var value = firstPartValue();
+				if (typeof(flexOpSecondPart[1]) === 'function') {
+					flexOpSecondPart[1] = flexOpSecondPart[1]();
 				}
+				if (writeStatus) {
+					flags.CARRY = getNthBit(flexOpSecondPart[1] - 1, value) ? true : false;
+				}
+				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
+			}
+		case "LSL":
+			return function () {
+				var value = firstPartValue();
+				if (typeof(flexOpSecondPart[1]) === 'function') {
+					flexOpSecondPart[1] = flexOpSecondPart[1]();
+				}
+				if (writeStatus) {
+					flags.CARRY = getNthBit(31 - flexOpSecondPart[1] + 1, value) ? true : false;
+				}
+				return convToUInt32((value << flexOpSecondPart[1]));
+			}
 			// ROR = rotate to right.. right out > left in
-			case "ROR":
-				return function() {
-					var value = firstPartValue();
-					if (typeof(flexOpSecondPart[1]) === 'function') {
-						flexOpSecondPart[1] = flexOpSecondPart[1]();
-					}
-					var out;
-					for (i = 0; i < flexOpSecondPart[1]; i++) {
-						out = getNthBit(0, value);
-						value = value >>> 1;
-						value = value | (out << 31);
-					}
-					flags.CARRY = out ? true : false;
-					return convToUInt32(value);
+		case "ROR":
+			return function () {
+				var value = firstPartValue();
+				if (typeof(flexOpSecondPart[1]) === 'function') {
+					flexOpSecondPart[1] = flexOpSecondPart[1]();
 				}
-			default:
-				throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!");
-				break;
+				var out;
+				for (i = 0; i < flexOpSecondPart[1]; i++) {
+					out = getNthBit(0, value);
+					value = value >>> 1;
+					value = value | (out << 31);
+				}
+				flags.CARRY = out ? true : false;
+				return convToUInt32(value);
+			}
+		default:
+			throw new ParseException("There is no bitshift-operator called " + flexOpSecondPart[0] + "!");
+			break;
 		}
 	}
 
@@ -441,337 +494,353 @@ var commandMap = (function() {
 		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
-		return function() {
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus);
+		return function () {
 			setResult(arithOperator(writeStatus, getFirstOp(), getSecondOp()));
 		}
 	}
 
 	[
-		["ADD", function(writeStatus, first, second) {
-			var result = convToUInt32((first + second));
-			if (writeStatus) {
-				flags.CARRY = (result < first);
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
-				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   |   1
-				 *   0   |    1   | never
-				 *   1   |    0   | never
-				 *   1   |    1   |   0
-				 */
-				flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
-			}
+		["ADD", function (writeStatus, first, second) {
+				var result = convToUInt32((first + second));
+				if (writeStatus) {
+					flags.CARRY = (result < first);
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   |   1
+					 *   0   |    1   | never
+					 *   1   |    0   | never
+					 *   1   |    1   |   0
+					 */
+					flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				}
 
-			return result;
-		}],
-		["SUB", function(writeStatus, first, second) {
-			var result = convToUInt32(first - second);
-			if (writeStatus) {
-				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
-				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   | never
-				 *   0   |    1   |   1
-				 *   1   |    0   |   0
-				 *   1   |    1   | never
-				 */
-				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				return result;
 			}
-			return result;
-		}],
-		["RSB", function(writeStatus, first, second) {
-			var result = convToUInt32((second - first));
-			if (writeStatus) {
-				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
-				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   | never
-				 *   0   |    1   |   1
-				 *   1   |    0   |   0
-				 *   1   |    1   | never
-				 */
-				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
-			}
-			return result;
-		}],
-		["ADC", function(writeStatus, first, second) {
-			/* This is another way to handle it
-			 * var result = (first + second);
-			 * if (flags.CARRY) {result += 1;}
-			 * result = result % MAX_INTEGER;
-			 *
-			 * Probably the if-clause is slighty faster than multiple calculations.
-			 */
-			if (flags.CARRY) {
-				var result = convToUInt32(first + second + 1);
-			} else {
-				var result = convToUInt32(first + second);
-			}
-			if (writeStatus) {
-				flags.CARRY = (result < first);
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
-				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   |   1
-				 *   0   |    1   | never
-				 *   1   |    0   | never
-				 *   1   |    1   |   0
-				 */
-				flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
-			}
-			return result;
-		}],
-		["SBC", function(writeStatus, first, second) {
-			if (flags.CARRY) {
+		],
+		["SUB", function (writeStatus, first, second) {
 				var result = convToUInt32(first - second);
-			} else {
-				var result = convToUInt32(first - second - 1);
+				if (writeStatus) {
+					flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   | never
+					 *   0   |    1   |   1
+					 *   1   |    0   |   0
+					 *   1   |    1   | never
+					 */
+					flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				}
+				return result;
 			}
-			if (writeStatus) {
-				flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
+		],
+		["RSB", function (writeStatus, first, second) {
+				var result = convToUInt32((second - first));
+				if (writeStatus) {
+					flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   | never
+					 *   0   |    1   |   1
+					 *   1   |    0   |   0
+					 *   1   |    1   | never
+					 */
+					flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
+				}
+				return result;
+			}
+		],
+		["ADC", function (writeStatus, first, second) {
+				/* This is another way to handle it
+				 * var result = (first + second);
+				 * if (flags.CARRY) {result += 1;}
+				 * result = result % MAX_INTEGER;
 				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   | never
-				 *   0   |    1   |   1
-				 *   1   |    0   |   0
-				 *   1   |    1   | never
+				 * Probably the if-clause is slighty faster than multiple calculations.
 				 */
-				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				if (flags.CARRY) {
+					var result = convToUInt32(first + second + 1);
+				} else {
+					var result = convToUInt32(first + second);
+				}
+				if (writeStatus) {
+					flags.CARRY = (result < first);
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   |   1
+					 *   0   |    1   | never
+					 *   1   |    0   | never
+					 *   1   |    1   |   0
+					 */
+					flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				}
+				return result;
 			}
-			return result;
-		}],
-		["RSC", function(writeStatus, first, second) {
-			if (flags.CARRY) {
-				var result = convToUInt32(second - first);
-			} else {
-				var result = convToUInt32(second - first - 1);
+		],
+		["SBC", function (writeStatus, first, second) {
+				if (flags.CARRY) {
+					var result = convToUInt32(first - second);
+				} else {
+					var result = convToUInt32(first - second - 1);
+				}
+				if (writeStatus) {
+					flags.CARRY = (result <= first); // ARM Architecture Reference Manual, p 50
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   | never
+					 *   0   |    1   |   1
+					 *   1   |    0   |   0
+					 *   1   |    1   | never
+					 */
+					flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+				}
+				return result;
 			}
-			if (writeStatus) {
-				flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
-				flags.ZERO = !result;
-				flags.NEGATIVE = getNthBit(31, result);
-				/*
-				 * Overflow if signed bits are
-				 *
-				 * first | second | result
-				 * ------+--------+-------
-				 *   0   |    0   | never
-				 *   0   |    1   |   1
-				 *   1   |    0   |   0
-				 *   1   |    1   | never
-				 */
-				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
+		],
+		["RSC", function (writeStatus, first, second) {
+				if (flags.CARRY) {
+					var result = convToUInt32(second - first);
+				} else {
+					var result = convToUInt32(second - first - 1);
+				}
+				if (writeStatus) {
+					flags.CARRY = (result <= second); // ARM Architecture Reference Manual, p 50
+					flags.ZERO = !result;
+					flags.NEGATIVE = getNthBit(31, result);
+					/*
+					 * Overflow if signed bits are
+					 *
+					 * first | second | result
+					 * ------+--------+-------
+					 *   0   |    0   | never
+					 *   0   |    1   |   1
+					 *   1   |    0   |   0
+					 *   1   |    1   | never
+					 */
+					flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, second) != getNthBit(31, result);
+				}
+				return result;
 			}
-			return result;
-		}]
-	].forEach(function(array) {
+		]
+	].forEach(function (array) {
 		populateCommandMap(array[0] + "<cond><S>", arith.bind(null, array[1]));
 	});
-	
+
 	/* LOGICAL OPERATIONS (AND, ORR, EOR, BIC)
 	 * All 4 operations are implemented in a similar way, see arith() for comparison
 	 */
 	// The function to use for logical operators is pretty much identical to the one used for arith operators, as they get the same amount and type of arguments
-	function logic(logicalOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart){
+	function logic(logicalOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart) {
 		assert(arguments.length == 5 || arguments.length == 6, "Argument count wrong, expected 3 or 4, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
-		return function() {
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus);
+		return function () {
 			setResult(logicalOperator(writeStatus, getFirstOp(), getSecondOp()));
 		}
 	}
 	[
-		["AND", function(writeStatus, first, second) {
-			var result = (first & second);
-			if (writeStatus) {
-				// change status accordingly
-				flags.ZERO = (result == 0);
-				// flags.CARRY results from bitshift-operator
-				flags.NEGATIVE = getNthBit(31, result)? true:false;
+		["AND", function (writeStatus, first, second) {
+				var result = (first & second);
+				if (writeStatus) {
+					// change status accordingly
+					flags.ZERO = (result == 0);
+					// flags.CARRY results from bitshift-operator
+					flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				}
+				return result;
 			}
-			return result;
-		}],
-		["ORR", function(writeStatus, first, second) {
-			var result = first | second;
-			if (writeStatus) {
-				// change status accordingly
-				flags.ZERO = (result == 0);
-				// flags.CARRY results from bitshift-operator
-				flags.NEGATIVE = getNthBit(31, result)? true:false;
+		],
+		["ORR", function (writeStatus, first, second) {
+				var result = first | second;
+				if (writeStatus) {
+					// change status accordingly
+					flags.ZERO = (result == 0);
+					// flags.CARRY results from bitshift-operator
+					flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				}
+				return result;
 			}
-			return result;
-		}],
-		["EOR", function(writeStatus, first, second) {
-			var result = first ^ second;
-			if (writeStatus) {
-				// change status accordingly
-				flags.ZERO = (result == 0);
-				// flags.CARRY results from bitshift-operator
-				flags.NEGATIVE = getNthBit(31, result)? true:false;
+		],
+		["EOR", function (writeStatus, first, second) {
+				var result = first ^ second;
+				if (writeStatus) {
+					// change status accordingly
+					flags.ZERO = (result == 0);
+					// flags.CARRY results from bitshift-operator
+					flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				}
+				return result;
 			}
-			return result;
-		}],
-		["BIC", function(writeStatus, first, second) {
-			var result = first & ~second;
-			if (writeStatus) {
-				// change status accordingly
-				flags.ZERO = (result == 0);
-				// flags.CARRY results from bitshift-operator
-				flags.NEGATIVE = getNthBit(31, result)? true:false;
+		],
+		["BIC", function (writeStatus, first, second) {
+				var result = first & ~second;
+				if (writeStatus) {
+					// change status accordingly
+					flags.ZERO = (result == 0);
+					// flags.CARRY results from bitshift-operator
+					flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				}
+				return result;
 			}
-			return result;
-		}]
-	].forEach(function(array) {
+		]
+	].forEach(function (array) {
 		populateCommandMap(array[0] + "<cond><S>", logic.bind(null, array[1]));
 	});
-	
+
 	/* COMPARING OPERATIONS (TST, TEQ, CMP, CMN)
 	 * All 4 operations are implemented in a similar way, see arith() for comparison
 	 *
 	 * The function used for comparing algorithms is slighty differing, as we do have neither a target register nor the set flag directive
 	 *
-	 * Comparing functions > only set Flags > no returns 
+	 * Comparing functions > only set Flags > no returns
 	 * TODO:
 	 * please test flag setting according to ARM manual
 	 * probably clean results as returns (thinking 1/0) would be better than no result
 	 */
-	 // how is comparison handled when called (no writestatus / result needed --> minimize ?
-	function comp(compOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart){
+	// how is comparison handled when called (no writestatus / result needed --> minimize ?
+	function comp(compOperator, writeStatus, result, firstOp, flexOpFirstPart, flexOpSecondPart) {
 		assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
 		// var setResult = setRegisterFunction(result); relict from copy-pasting arith
 		var getFirstOp = getRegisterFunction(firstOp);
-		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart,writeStatus);
-		return function() {
+		var getSecondOp = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus);
+		return function () {
 			setResult(compOperator(writeStatus, getFirstOp(), getSecondOp()));
 			//setResult(compOperator(writeStatus, getFirstOp(), getSecondOp())); // . original
 		}
 	}
 	[
-		["CMP", function(writeStatus, first, second) {
-			var result = convToUInt32(first - second);
-			flags.ZERO = (result == 0);
-			flags.NEGATIVE = getNthBit(31,result) ? true : false;
-			flags.CARRY = !(first - second < 0);
-			// flags.OVERFLOW case substraction: 
-			flags.OVERFLOW = getNthBit(31,first) != getNthBit(31,second) && getNthBit(31,first) != getNthBit(31,result);
-		}],
-		["CMN", function(writeStatus, first, second) {
-			// TODO: correct? - reference manual 4.1.14 CMN
-			var result = convToUInt32(first + second);
-			flags.ZERO = (result == 0);
-			flags.NEGATIVE = getNthBit(31,result) ? true : false;
-			flags.CARRY = (first+second) >= MAX_INTEGER;
-			// flags.OVERFLOW case addition: 
-			flags.OVERFLOW = getNthBit(31,first) == getNthBit(31,second) && getNthBit(31,first) != getNthBit(31,result);
-		}],
-		["TEQ", function(writeStatus, first, second) {
-			var result = convToUInt32(first ^ second);
-			flags.ZERO = (result == 0);
-			flags.NEGATIVE = getNthBit(31,result) ? true : false;
-			// flags.CARRY set from barrelShift
-			// flags.OVERFLOW unaffected
-		}],
-		["TST", function(writeStatus, first, second) {
-			var result = convToUInt32(first & second);
-			flags.ZERO = (result == 0);
-			flags.NEGATIVE = getNthBit(31,result) ? true : false;
-			// flags.CARRY set from barrelShift
-			// flags.OVERFLOW unaffected
-		}]
-	].forEach(function(array) {
+		["CMP", function (writeStatus, first, second) {
+				var result = convToUInt32(first - second);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				flags.CARRY = !(first - second < 0);
+				// flags.OVERFLOW case substraction:
+				flags.OVERFLOW = getNthBit(31, first) != getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+			}
+		],
+		["CMN", function (writeStatus, first, second) {
+				// TODO: correct? - reference manual 4.1.14 CMN
+				var result = convToUInt32(first + second);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				flags.CARRY = (first + second) >= MAX_INTEGER;
+				// flags.OVERFLOW case addition:
+				flags.OVERFLOW = getNthBit(31, first) == getNthBit(31, second) && getNthBit(31, first) != getNthBit(31, result);
+			}
+		],
+		["TEQ", function (writeStatus, first, second) {
+				var result = convToUInt32(first ^ second);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				// flags.CARRY set from barrelShift
+				// flags.OVERFLOW unaffected
+			}
+		],
+		["TST", function (writeStatus, first, second) {
+				var result = convToUInt32(first & second);
+				flags.ZERO = (result == 0);
+				flags.NEGATIVE = getNthBit(31, result) ? true : false;
+				// flags.CARRY set from barrelShift
+				// flags.OVERFLOW unaffected
+			}
+		]
+	].forEach(function (array) {
 		populateCommandMap(array[0] + "<cond>", comp.bind(null, array[1]));
 	});
 
 	/* MOVING OPERATIONS (MOV, MVN)
-	 * 
+	 *
 	 */
 	function mov(movOperator, writeStatus, result, flexOpFirstPart, flexOpSecondPart) {
 		//assert(arguments.length == 4 || arguments.length == 5, "Argument count wrong, expected 2 or 3, got " + (arguments.length - 2));
 		var setResult = setRegisterFunction(result);
 		var getValue = evalFlexibleOperatorFunction(flexOpFirstPart, flexOpSecondPart, writeStatus);
-		return function() {
+		return function () {
 			setResult(movOperator(writeStatus, getValue()));
 		}
 	}
-	
+
 	[
-		["MOV", function(writeStatus, value) {
-			var result = value;
-			if (writeStatus) {
-				flags.ZERO = (result == 0);
-				flags.NEGATIVE = (result < 0);
-				// change C according to eval of second op
-				// dont affect V flag
+		["MOV", function (writeStatus, value) {
+				var result = value;
+				if (writeStatus) {
+					flags.ZERO = (result == 0);
+					flags.NEGATIVE = (result < 0);
+					// change C according to eval of second op
+					// dont affect V flag
+				}
+				return result;
 			}
-			return result; 
-		}],
-		["MVN", function(writeStatus, value) {
-		   var result = convToUInt32(~value);
-		   if (writeStatus) {
-				flags.ZERO = (result == 0);
-				flags.NEGATIVE = (getNthBit(31,result) ? true : false);
-				// change C according to eval of second op
-				// dont affect V flag
-		   }
-		   return result;
-		}]
-	].forEach(function(array) {
+		],
+		["MVN", function (writeStatus, value) {
+				var result = convToUInt32(~value);
+				if (writeStatus) {
+					flags.ZERO = (result == 0);
+					flags.NEGATIVE = (getNthBit(31, result) ? true : false);
+					// change C according to eval of second op
+					// dont affect V flag
+				}
+				return result;
+			}
+		]
+	].forEach(function (array) {
 		populateCommandMap(array[0] + "<cond><S>", mov.bind(null, array[1]));
 	});
 
-	populateCommandMap("LDR<cond>", function(result, source, offset) {
+	populateCommandMap("LDR<cond>", function (result, source, offset) {
 		assert(arguments.length == 2 || arguments.length == 3, "Argument count wrong, expected 32 or 3, got " + arguments.length);
 		assert(source.charAt(0) == "[", "Labels aren't supported yet"); // everything except labels is indirectand in []. TODO
 
 		assert((arguments.length == 2 && source.charAt(source.length - 1) == "]")
-	       || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
+			 || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
 
 		if (arguments.length == 2) {
 			var getIndirectReference = getRegisterFunction(source.substr(1, source.length - 2).trim());
 			var setResult = setRegisterFunction(result);
 
-			return function() {
+			return function () {
 				setResult(memory[getIndirectReference()]);
 			}
 		}
 	});
-	populateCommandMap("STR<cond>", function(result, source, offset) {
+	populateCommandMap("STR<cond>", function (result, source, offset) {
 		assert(arguments.length == 2 || arguments.length == 3, "Argument count wrong, expected 32 or 3, got " + arguments.length);
 		assert(source.charAt(0) == "[", "Labels aren't supported yet"); // everything except labels is indirectand in []. TODO
 
 		assert((arguments.length == 2 && source.charAt(source.length - 1) == "]")
-	       || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
+			 || arguments.length == 3 && offset.charAt(offset.length - 1) == "]");
 
 		if (arguments.length == 2) {
 			var getIndirectReference = getRegisterFunction(source.substr(1, source.length - 2).trim());
 			var getResult = getRegisterFunction(result);
 
-			return function() {
+			return function () {
 
 				setMemoryAddress(getIndirectReference(), getResult());
 			}
@@ -791,7 +860,7 @@ var commandMap = (function() {
 			whereToContent = getLabelFunction(whereTo, whereTo + " is neither register nor label");
 		}
 
-		return function() {
+		return function () {
 			if (link) {
 				// save the next instruction for jumping back
 				registers[12] = registers[12] + 1;
@@ -804,7 +873,8 @@ var commandMap = (function() {
 	populateCommandMap("BL<cond>", branch.bind(null, true), true);
 
 	return returner;
-}());
+}
+	());
 
 function Command(commandString, lineNumber) {
 	commandString = commandString.trim();
@@ -814,7 +884,7 @@ function Command(commandString, lineNumber) {
 		// this is a line with a label only.
 		symbolTable[commandString.substr(0, opcodeLength - 1).trim()] = lineNumber;
 		// return a noop
-		return function() {}
+		return function () {}
 	} else if (commandString.charAt(opcodeLength - 1) == ':') {
 		// this is a line with a label and a following opcode.
 		symbolTable[commandString.substr(0, opcodeLength - 1).trim()] = lineNumber;
@@ -842,7 +912,7 @@ function Command(commandString, lineNumber) {
 function Assembly(instructions, isBreakpoint) {
 	// in our application, this should always be a function. For generic use, we also support undefined.
 	if (!isBreakpoint) {
-		isBreakpoint = function() {
+		isBreakpoint = function () {
 			return false;
 		}
 	}
@@ -856,7 +926,7 @@ function Assembly(instructions, isBreakpoint) {
 	instructions = instructions.map(Command);
 
 	matchLabels();
-	this.step = function() {
+	this.step = function () {
 		assert(labelsMatched, "You somehow didn't match the labels. This shouldn't be possible.");
 		newUndoStep();
 		var instructionToExecute = instructions[registers[15]];
@@ -872,7 +942,7 @@ function Assembly(instructions, isBreakpoint) {
 		}
 	}
 
-	this.run = function(doneCallback) {
+	this.run = function (doneCallback) {
 		var aborted = false;
 		var that = this;
 		function nextStep() {
@@ -884,7 +954,7 @@ function Assembly(instructions, isBreakpoint) {
 			}
 		}
 		setTimeout(nextStep, 0);
-		return function() {
+		return function () {
 			aborted = true;
 		};
 	}

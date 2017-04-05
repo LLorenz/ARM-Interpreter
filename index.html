@@ -9,214 +9,233 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.js"></script>
     <script src="js/index.js"></script>
     <style>
-      * {
-        margin: 0;
+		* {
+		margin: 0;
         padding: 0;
-      }
+		}
     </style>
 
     <script>
-      angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope, $timeout) {
-        // if we execute the CodeMirror initializationat controller time, we get problems with AngularJS compiler.
-        // Do it later.
-        $timeout(function() {
-          var editor = CodeMirror(function(editorTag) {
-            document.querySelector("#asm-input").insertBefore(editorTag, document.querySelector("#assembleSubmit"))
-          }, {
-            lineNumbers: true,
-            gutters: ["CodeMirror-linenumbers", "breakpoints"]
-          });
-          editor.on("changes", function() {
-            console.log("Save");
-            $scope.$apply(function() {
-              $scope.assemblerTextBox = editor.getValue();
-            });
-          });
-          $scope.isLineToggled = function(lineNumber) {
-            return !!editor.lineInfo(lineNumber).gutterMarkers;
-          }
-          function makeMarker() {
-            var marker = document.createElement("div");
-            marker.style.color = "#99e";
-            marker.innerHTML = "&#x25CF;";
-            return marker;
-          }
-          $scope.$watch("processorState.register[15]", function(newVal, oldVal) {
-            var lineCount = editor.lineCount();
-            if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
-              editor.removeLineClass(oldVal, "gutter", "gutter-highlight");
-            }
-            if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
-              editor.addLineClass(newVal, "gutter", "gutter-highlight");
-            }
-          });
-          $scope.$watch("assembly", function(asse) {
-            console.log("Demo", asse);
-            if (asse) {
-              editor.setOption("readOnly", true);
-              angular.element(editor.getWrapperElement()).addClass("read-only");
-              editor.addLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
-            } else {
-              editor.setOption("readOnly", false);
-              angular.element(editor.getWrapperElement()).removeClass("read-only");
-              editor.removeLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
-            }
-          });
-          editor.on("gutterClick", function(cm, n) {
-            console.log(n);
-            var info = cm.lineInfo(n);
-            if ($scope.isLineToggled(n)) {
-              cm.setGutterMarker(n, "breakpoints", null);
-            } else {
-              cm.setGutterMarker(n, "breakpoints", makeMarker());
-            }
-          });
-        }, 0);
-        $scope.processorState = {
-          register: registers,
-          flags: flags
-        };
-        $scope.normalizeInput = function(register) {
-          $scope.processorState.register[register] = parseInt($scope.processorState.register[register]);
-          $scope.processorState.register[register] = isNaN($scope.processorState.register[register]) ? 0 : $scope.processorState.register[register];
-          $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
-        }
+		angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope, $timeout) {
+      // if we execute the CodeMirror initializationat controller time, we get problems with AngularJS compiler.
+      // Do it later.
+      $timeout(function() {
+				var editor = CodeMirror(function(editorTag) {
+					document.querySelector("#asm-input").insertBefore(editorTag, document.querySelector("#controlContainer"))
+				}, {
+					lineNumbers: true,
+					gutters: ["CodeMirror-linenumbers", "breakpoints"]
+				});
+				editor.setOption("extraKeys", {
+					"Ctrl-S": $scope.saveFile,
+					"Ctrl-O": $scope.loadFile
+				});
+				editor.on("changes", function() {
+					console.log("Save");
+					$scope.$apply(function() {
+						$scope.assemblerTextBox = editor.getValue();
+					});
+				});
+				$scope.isLineToggled = function(lineNumber) {
+					return !!editor.lineInfo(lineNumber).gutterMarkers;
+				}
+				function makeMarker() {
+					var marker = document.createElement("div");
+					marker.style.color = "#99e";
+					marker.innerHTML = "&#x25CF;";
+					return marker;
+				}
+				$scope.$watch("processorState.register[15]", function(newVal, oldVal) {
+					var lineCount = editor.lineCount();
+					if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
+						editor.removeLineClass(oldVal, "gutter", "gutter-highlight");
+					}
+					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
+						editor.addLineClass(newVal, "gutter", "gutter-highlight");
+					}
+				});
+				$scope.$watch("assembly", function(asse) {
+					console.log("Demo", asse);
+					if (asse) {
+						editor.setOption("readOnly", true);
+						angular.element(editor.getWrapperElement()).addClass("read-only");
+						editor.addLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+					} else {
+						editor.setOption("readOnly", false);
+						angular.element(editor.getWrapperElement()).removeClass("read-only");
+						editor.removeLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+					}
+				});
+				editor.on("gutterClick", function(cm, n) {
+					console.log(n);
+					var info = cm.lineInfo(n);
+					if ($scope.isLineToggled(n)) {
+						cm.setGutterMarker(n, "breakpoints", null);
+					} else {
+						cm.setGutterMarker(n, "breakpoints", makeMarker());
+					}
+				});
+			}, 0);
+      
+			$scope.processorState = {
+        register: registers,
+        flags: flags
+      };
+      $scope.normalizeInput = function(register) {
+        $scope.processorState.register[register] = parseInt($scope.processorState.register[register]);
+        $scope.processorState.register[register] = isNaN($scope.processorState.register[register]) ? 0 : $scope.processorState.register[register];
+        $scope.processorState.register[register] = Math.min(4294967295, Math.max(0, $scope.processorState.register[register]))
+      }
 
-        $scope.assembleOrDestroy = function() {
-          if ($scope.assembly) {
-            $scope.destroyAssembled();
-          } else {
-            $scope.assembleTextBox();
-          }
-        }
+      $scope.assembleOrDestroy = function() {
+				if ($scope.assembly) {
+					$scope.destroyAssembled();
+				} else {
+					$scope.assembleTextBox();
+				}
+      }
+		
+			// function to load the contents of a file from the filesystem
+			$scope.loadFile = function() {
+				// TODO: Implement File Loader
+				alert("Load File");
+			}
+			$scope.saveFile = function() {
+				// TODO: Implement File Saving Dialog
+				alert("Save File");
+			}
 
-        $scope.assembleTextBox = function() {
-          var assembler = $scope.assemblerTextBox.split("\n");
-          try {
-            $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
-          } catch (e) {
-            if (!e instanceof ParseException) {
-              throw e;
-            }
-
-            alert("Error parsing: " + e.message);
-            console.log(e);
-          }
+      $scope.assembleTextBox = function() {
+				var assembler = $scope.assemblerTextBox.split("\n");
+        try {
+          $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
+        } catch (e) {
+          if (!e instanceof ParseException) {
+						throw e;
+					}
+          alert("Error parsing: " + e.message);
+          console.log(e);
         }
-        $scope.destroyAssembled = function() {
-          $scope.assembly = undefined;
-		      $scope.resetState();
-        }
+      }
+      $scope.destroyAssembled = function() {
+        $scope.assembly = undefined;
+				$scope.resetState();
+      }
 
-    		$scope.resetState = function (){
-          undoSteps = [];
-    			for (i = 0; i < 16; i++) {
-    				$scope.processorState.register[i] 	= 0;
-    			}
-    			$scope.processorState.flags.CARRY 		= false;
-    			$scope.processorState.flags.ZERO 		= false;
-    			$scope.processorState.flags.NEGATIVE 	= false;
-    			$scope.processorState.flags.OVERFLOW 	= false;
-    			$scope.processorState.flags.PARITY 		= false;
+			$scope.resetState = function (){
+        undoSteps = [];
+				for (i = 0; i < 16; i++) {
+    			$scope.processorState.register[i] 	= 0;
     		}
+    		$scope.processorState.flags.CARRY 		= false;
+    		$scope.processorState.flags.ZERO 		= false;
+    		$scope.processorState.flags.NEGATIVE 	= false;
+    		$scope.processorState.flags.OVERFLOW 	= false;
+    		$scope.processorState.flags.PARITY 		= false;
+    	}
 
-        $scope.next = function() {
-          try {
-            $scope.assembly.step();
-          } catch (e) {
-            if (!e instanceof RuntimeException) {
-              throw e;
-            }
-            alert("Error at runtime: " + e.message);
+      $scope.next = function() {
+				try {
+					$scope.assembly.step();
+				} catch (e) {
+					if (!e instanceof RuntimeException) {
+						throw e;
           }
+					alert("Error at runtime: " + e.message);
         }
+      }
 
-        $scope.run = function() {
-          try {
-            var showAbortCallback = $timeout(function() {
-              // only show after 200 ms
-              $scope.abortRunCallback.showAbort = true;
-            }, 200);
-            var abortCallback = $scope.assembly.run(function() {
-              $scope.$apply(function() {
-                $timeout.cancel(showAbortCallback);
-                $scope.abortRunCallback = undefined;
-              });
-            });
-            $scope.abortRunCallback = function() {
-              abortCallback();
+      $scope.run = function() {
+        try {
+          var showAbortCallback = $timeout(function() {
+            // only show after 200 ms
+            $scope.abortRunCallback.showAbort = true;
+          }, 200);
+          var abortCallback = $scope.assembly.run(function() {
+            $scope.$apply(function() {
+              $timeout.cancel(showAbortCallback);
               $scope.abortRunCallback = undefined;
-            }
-          } catch (e) {
-            if (!e instanceof RuntimeException) {
-              throw e;
-            }
-            alert("Error at runtime: " + e.message);
+            });
+          });
+          $scope.abortRunCallback = function() {
+            abortCallback();
+            $scope.abortRunCallback = undefined;
           }
+        } catch (e) {
+          if (!e instanceof RuntimeException) {
+            throw e;
+          }
+          alert("Error at runtime: " + e.message);
         }
+      }
 
-        $scope.notImplementedYet = function() {
-          alert("Not implemented yet");
-        }
-        $scope.undoLastStep = function() {
-          undoLastStep();
-        }
-      }).directive('processorState', function() {
-        return {
-          templateUrl: "processorStateDirectiveTemplate.html"
-        };
-
-      });
+      $scope.notImplementedYet = function() {
+        alert("Not implemented yet");
+      }
+      $scope.undoLastStep = function() {
+        undoLastStep();
+      }
+    }).directive('processorState', function() {
+      return {
+        templateUrl: "processorStateDirectiveTemplate.html"
+      };
+    });
     </script>
 
     <script type="text/ng-template" id="processorStateDirectiveTemplate.html">
       <h2>Registers</h2>
-	  <table class="register-table" id="registers">
+			<table class="register-table" id="registers">
         <tr ng-repeat="register in processorState.register track by $index">
           <td>R{{$index}}</td><td><input type="text" ng-model="processorState.register[$index]" ng-blur="normalizeInput($index)"></td>
         </tr>
       </table>
       <h2>Flags</h2>
       <table class="register-table" id="flags">
-		<tr>
-			<td title="Negative" width="20%"> N </td>
-			<td title="Zero" width="20%"> Z </td>
-			<td title="Carry" width="20%"> C </td>
-			<td title="Overflow" width="20%"> V </td>
-		</tr>
-		<tr>
-			<td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td>
-			<td><input type="checkbox" ng-model="processorState.flags.ZERO"></td>
-			<td><input type="checkbox" ng-model="processorState.flags.CARRY"></td>
-			<td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td>
-		</tr>
-	    <!--
-		<tr><td>Carry</td><td><input type="checkbox" ng-model="processorState.flags.CARRY"></td></tr>
-        <tr><td>Zero</td><td><input type="checkbox" ng-model="processorState.flags.ZERO"></td></tr>
-        <tr><td>Negative</td><td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td></tr>
-        <tr><td>Overflow</td><td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td></tr>
-        <tr><td>Parity</td><td><input type="checkbox" ng-model="processorState.flags.PARITY"></td></tr> -->
+				<tr>
+					<td title="Negative" width="20%"> N </td>
+					<td title="Zero" width="20%"> Z </td>
+					<td title="Carry" width="20%"> C </td>
+					<td title="Overflow" width="20%"> V </td>
+				</tr>
+				<tr>
+					<td><input type="checkbox" ng-model="processorState.flags.NEGATIVE"></td>
+					<td><input type="checkbox" ng-model="processorState.flags.ZERO"></td>
+					<td><input type="checkbox" ng-model="processorState.flags.CARRY"></td>
+					<td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td>
+				</tr>
       </table>
     </script>
   </head>
-  <body ng-controller="MainCtrl">
+  
+	<body ng-controller="MainCtrl">
     <div id="abortModal" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
       <div>Abort run</div>
     </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input" ng-submit="assembleOrDestroy()">
-      <input id="assembleSubmit" type="submit" value="{{assembly ? 'Edit' : 'Assemble'}}" ng-disabled="abortRunCallback">
-    </form>
+		<div id="controlContainer">
+			<div id="fileInteraction">
+				<div id="fileInteractionContainer">
+					<button ng-click="saveFile()">Save</button>
+					<button ng-click="loadFile()">Load</button>
+				</div>
+			</div>
+			<div id="assembleContainer">
+				<input id="assembleSubmit" type="submit" value="{{assembly ? 'Edit' : 'Assemble'}}" ng-disabled="abortRunCallback">
+			</div>
+			<div id="controls">
+				<div id="controls-flex">
+					<button ng-click="resetState()">&#x21e4;</button>
+					<button ng-click="undoLastStep()">&#x2190;</button>
+					<button ng-click="next()">&#x2192;</button>
+					<button ng-click="run()">&#x21e5;</button>
+				</div>
+				<div class="controls-overlay" ng-hide="assembly">Press Assemble before running</div>
+				<div class="controls-overlay" ng-show="abortRunCallback">&nbsp;</div>
+			</div>
+		</div>
+	</form>
     <div id="console">Konsole - im Moment ohne Funktion<span class="cursor">&nbsp;</span></div>
     <processor-state></processor-state>
-    <div id="controls">
-      <div id="controls-flex">
-        <button ng-click="resetState()">&#x21e4;</button>
-        <button ng-click="undoLastStep()">&#x2190;</button>
-        <button ng-click="next()">&#x2192;</button>
-        <button ng-click="run()">&#x21e5;</button></div>
-        <div class="controls-overlay" ng-hide="assembly">Press Assemble before running</div>
-        <div class="controls-overlay" ng-show="abortRunCallback">&nbsp;</div>
-    </div>
   </body>
 </html>
