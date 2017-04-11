@@ -27,8 +27,8 @@
 					gutters: ["CodeMirror-linenumbers", "breakpoints"]
 				});
 				editor.setOption("extraKeys", {
-					"Ctrl-S": $scope.saveFile,
-					"Ctrl-O": $scope.loadFile
+					"Ctrl-S": $scope.$apply.bind($scope, $scope.saveFile),
+					"Ctrl-O": $scope.$apply.bind($scope, $scope.loadFile)
 				});
 				editor.on("changes", function() {
 					console.log("Save");
@@ -76,7 +76,7 @@
 					}
 				});
 			}, 0);
-      
+
 			$scope.processorState = {
         register: registers,
         flags: flags
@@ -94,13 +94,12 @@
 					$scope.assembleTextBox();
 				}
       }
-		
+
 			// function to load the contents of a file from the filesystem
 			$scope.loadFile = function() {
 				// TODO: Implement File Loader
 				alert("Load File");
-				//$('#file-load').click();
-				$('#file-load').trigger("click");
+				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
 				// TODO: Implement File Saving Dialog
@@ -208,20 +207,19 @@
       </table>
     </script>
   </head>
-  
+
 	<body ng-controller="MainCtrl">
     <div id="abortModal" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
       <div>Abort run</div>
     </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input">
+      <input type="file" name="fileButton" id="fileButton">
 			<div id="controlContainer">
 				<div id="fileInteraction">
 					<div id="fileInteractionContainer">
 						<button id="saveFile" ng-click="saveFile()">Save</button>
-						<div>
-							<input type="file" name="fileButton" id="button" />
-						</div>
+						<button id="loadFile" ng-click="loadFile()">Load</button>
 					</div>
 				</div>
 				<div id="assembleContainer">
