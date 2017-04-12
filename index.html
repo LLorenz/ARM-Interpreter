@@ -21,7 +21,7 @@
       // Do it later.
       $timeout(function() {
 				var editor = CodeMirror(function(editorTag) {
-					document.querySelector("#asm-input").insertBefore(editorTag, document.querySelector("#controlContainer"))
+					document.querySelector("#asm-input").insertBefore(editorTag, document.querySelector("#button-container"))
 				}, {
 					lineNumbers: true,
 					gutters: ["CodeMirror-linenumbers", "breakpoints"]
@@ -55,7 +55,6 @@
 					}
 				});
 				$scope.$watch("assembly", function(asse) {
-					console.log("Demo", asse);
 					if (asse) {
 						editor.setOption("readOnly", true);
 						angular.element(editor.getWrapperElement()).addClass("read-only");
@@ -118,12 +117,13 @@
           console.log(e);
         }
       }
+
       $scope.destroyAssembled = function() {
         $scope.assembly = undefined;
 				$scope.resetState();
       }
 
-			$scope.resetState = function (){
+			$scope.resetState = function() {
         undoSteps = [];
 				for (i = 0; i < 16; i++) {
     			$scope.processorState.register[i] 	= 0;
@@ -170,9 +170,6 @@
         }
       }
 
-      $scope.notImplementedYet = function() {
-        alert("Not implemented yet");
-      }
       $scope.undoLastStep = function() {
         undoLastStep();
       }
@@ -209,31 +206,28 @@
   </head>
 
 	<body ng-controller="MainCtrl">
-    <div id="abortModal" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
-      <div>Abort run</div>
+    <div class="overlay" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
+      Abort run
     </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input">
-      <input type="file" name="fileButton" id="fileButton">
-			<div id="controlContainer">
-				<div id="fileInteraction">
-					<div id="fileInteractionContainer">
-						<button id="saveFile" ng-click="saveFile()">Save</button>
-						<button id="loadFile" ng-click="loadFile()">Load</button>
-					</div>
+      <input type="file" name="fileButton" id="fileButton" style="display: none;">
+			<div id="button-container">
+			  <div id="file-interaction-container">
+					<button ng-click="saveFile()">Save</button>
+					<button ng-click="loadFile()">Load</button>
 				</div>
-				<div id="assembleContainer">
+				<div id="assemble-container">
 					<button id="assembleSubmit" ng-click="assembleOrDestroy()" type="submit" ng-disabled="abortRunCallback">{{assembly ? 'Edit' : 'Assemble'}}</button>
 				</div>
-				<div id="controls">
-					<div id="controls-flex">
-						<button ng-click="resetState()">&#x21e4;</button>
-						<button ng-click="undoLastStep()">&#x2190;</button>
-						<button ng-click="next()">&#x2192;</button>
-						<button ng-click="run()">&#x21e5;</button>
-					</div>
-					<div class="controls-overlay" ng-hide="assembly">Press Assemble before running</div>
-					<div class="controls-overlay" ng-show="abortRunCallback">&nbsp;</div>
+				<div id="controls-container">
+					<button ng-click="resetState()">&#x21e4;</button>
+					<button ng-click="undoLastStep()">&#x2190;</button>
+					<button ng-click="next()">&#x2192;</button>
+					<button ng-click="run()">&#x21e5;</button>
+  				<div class="overlay" ng-hide="assembly">Press Assemble before running</div>
+  				<div class="overlay" ng-show="abortRunCallback">&nbsp;</div>
+				</div>
 				</div>
 			</div>
 		</form>

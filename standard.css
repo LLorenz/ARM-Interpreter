@@ -9,7 +9,25 @@ html {
 	font-size:20px;
 }
 
-#header, #asm-input, #console, processor-state, #controls {
+/* Overlay used for modal abort run-overlay and for controls overlays */
+.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	font-size: 0.8em;
+	line-height: 1.2em;
+	background-color: #dedeff;
+	opacity: 0.5;
+	z-index: 1000;
+}
+
+#header, #asm-input, #console, processor-state {
 	position:absolute;
 	overflow-y: auto;
 }
@@ -33,12 +51,8 @@ html {
 	width:80%;
 }
 
-#asm-input textarea, #asm-input .CodeMirror {
-	border:none;
-	width:100%;
+#asm-input .CodeMirror {
 	height:calc(100% - 2em);
-	/*font-size:inherit;*/
-	display:block;
 }
 
 .CodeMirror.read-only {
@@ -53,10 +67,31 @@ html {
 	background-color:#ddf;
 }
 
-#assembleSubmit {
-	width:100%;
-	height:100%;
-	display:block;
+#button-container {
+	display:flex;
+	height:2em;
+}
+
+#button-container > * {
+	display:flex;
+	flex-direction:row;
+	position: relative; /* for controls overlay */
+}
+
+#button-container > * > * {
+	flex: 1 1 auto;
+}
+
+#file-interaction-container {
+	width:30%;
+}
+
+#assemble-container {
+	width:40%;
+}
+
+#controls-container {
+	width:30%;
 }
 
 #console {
@@ -92,6 +127,14 @@ processor-state {
 	bottom:0em;
 	width:20%;
 	right:0;
+}
+
+h2 {
+	font-weight: bolder;
+	font-size:1.8em;
+	margin-left:0.8em;
+	margin-bottom: 0.3em;
+	margin-top: 0.8em;
 }
 
 .register-table {
@@ -150,98 +193,4 @@ processor-state {
 	font-size:1em;
 	line-height:1.25em;
 	border:none;
-}
-
-#controls {
-	height:2em;
-	bottom:0;
-	width:100%;
-	right:0;
-}
-
-#controlContainer {
-	display:flex;
-	height:2em;
-}
-
-.controls-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	text-align: center;
-	font-size: 0.8em;
-	line-height: 1.2em;
-	background-color: #dedeff;
-	opacity: 0.5;
-}
-
-#fileInteraction{
-	width:30%;
-}
-#fileInteractionContainer {
-	width:100%;
-	height:100%;
-	display:flex;
-	flex-direction:row;
-}
-#fileInteractionContainer > * {
-	flex: 1 1 auto;
-}
-#saveFile, #loadFile {
-	width: 100%;
-}
-#fileButton {
-  display: none;
-}
-
-#assembleContainer {
-	width:40%;
-}
-
-#controls {
-	width:30%;
-}
-
-#controls-flex {
-	width:100%;
-	height:100%;
-	display: flex;
-	flex-direction: row;
-}
-
-#controls-flex > * {
-	flex: 1 1 auto;
-}
-
-h2 {
-	font-weight: bolder;
-	font-size:1.8em;
-	margin-left:0.8em;
-	margin-bottom: 0.3em;
-	margin-top: 0.8em;
-}
-
-#abortModal {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	text-align: center;
-	background-color: white;
-	opacity: 0.5;
-	z-index: 1000;
-}
-
-#abortModal > * {
-	position: absolute;
-	top: calc(50% - 0.5em);
-	left: 0;
-	right: 0;
-	text-align: center;
 }
