@@ -63,8 +63,8 @@ html {
 	width: 0.8em;
 }
 
-.gutter-highlight {
-	background-color:#ddf;
+.current-line-highlight {
+	background-color:#bbf;
 }
 
 #button-container {

@@ -48,21 +48,21 @@
 				$scope.$watch("processorState.register[15]", function(newVal, oldVal) {
 					var lineCount = editor.lineCount();
 					if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
-						editor.removeLineClass(oldVal, "gutter", "gutter-highlight");
+						editor.removeLineClass(oldVal, "background", "current-line-highlight");
 					}
 					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
-						editor.addLineClass(newVal, "gutter", "gutter-highlight");
+						editor.addLineClass(newVal, "background", "current-line-highlight");
 					}
 				});
 				$scope.$watch("assembly", function(asse) {
 					if (asse) {
 						editor.setOption("readOnly", true);
 						angular.element(editor.getWrapperElement()).addClass("read-only");
-						editor.addLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+						editor.addLineClass($scope.processorState.register[15], "background", "current-line-highlight");
 					} else {
 						editor.setOption("readOnly", false);
 						angular.element(editor.getWrapperElement()).removeClass("read-only");
-						editor.removeLineClass($scope.processorState.register[15], "gutter", "gutter-highlight");
+						editor.removeLineClass($scope.processorState.register[15], "background", "current-line-highlight");
 					}
 				});
 				editor.on("gutterClick", function(cm, n) {
