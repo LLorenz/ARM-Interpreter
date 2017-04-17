@@ -97,13 +97,47 @@
 			// function to load the contents of a file from the filesystem
 			$scope.loadFile = function() {
 				// TODO: Implement File Loader
-				alert("Load File");
+				//alert("Load File");
 				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
 				// TODO: Implement File Saving Dialog
 				alert("Save File");
 			}
+			
+			$scope.handleFileSelect = function(evt) {
+				var files = evt.target.files;
+				var output = [];
+				
+				/*
+				// we do only support loading one file at a time
+				if (files.count != 1) {
+				  alert("Please select exactly one file!");
+					return 1;
+				}*/
+				var f = files[0];
+				// for reference: http://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript
+				var ext = f.name.substr((~-f.name.lastIndexOf(".") >>> 0) + 2);
+				var content;
+				var reader = new FileReader();
+				// confirm that file extension is viable (in defined set) 
+				if (["","arm"].indexOf(ext) >= 0) {
+					reader.onloadend = function(){
+						content = reader.result;
+						console.log(reader.result.substring(0, 200));
+					};
+				  reader.readAsText(f);
+					// currently undefined
+					alert(content);	
+				} else {
+					alert("File type not supported");
+				}
+				// TODO:
+				// if codemirror not empty: are you sure you want to continue? your present code will be overwritten. 
+				// paste content of file into codeMirror
+				// --> editor.getDoc().setValue(content);
+			}
+			document.getElementById('fileButton').addEventListener('change', $scope.handleFileSelect, false);
 
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
