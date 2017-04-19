@@ -10,8 +10,8 @@
     <script src="js/index.js"></script>
     <style>
 		* {
-		margin: 0;
-        padding: 0;
+			margin: 0;
+			padding: 0;
 		}
     </style>
 
@@ -78,8 +78,17 @@
           if (editor.getValue().trim() == "" || confirm("Are you sure you want to continue? Your present code will be overwritten.")) {
             editor.setValue(content);
           }
-        }
+        }	
+				$scope.getEditorContents = function() {
+					var blob = "";
+					editor.eachLine( function(line) {
+						blob += line.text;
+						blob += String.fromCharCode(10);
+					});
+					return blob;
+				}
 			}, 0);
+			
 
 			$scope.processorState = {
         register: registers,
@@ -106,8 +115,8 @@
 				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
-				// TODO: Implement File Saving Dialog
-				alert("Save File");
+				// TODO: Implement File Saving Dialog when working locally
+				$scope.download("testname",$scope.getEditorContents());
 			}
 			document.getElementById('fileButton').addEventListener('change', function(evt) {
 				var files = evt.target.files;
@@ -131,6 +140,20 @@
   			  reader.readAsText(file);
         }
 			}, false);
+			$scope.download = function(filename, text) {
+				var element = document.createElement('a');
+				console.log(text);
+				// TODO: encoding makes us lose linebreaks --> change encoded character?
+				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+				element.setAttribute('download', filename);
+
+				element.style.display = 'none';
+				document.body.appendChild(element);
+
+				element.click();
+
+				document.body.removeChild(element);
+			}
 
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
