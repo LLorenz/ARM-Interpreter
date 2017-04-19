@@ -83,7 +83,7 @@
 					var blob = "";
 					editor.eachLine( function(line) {
 						blob += line.text;
-						blob += String.fromCharCode(10);
+						blob += "\r\n"; //String.fromCharCode(10);
 					});
 					return blob;
 				}
