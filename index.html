@@ -31,7 +31,7 @@
 					"Ctrl-O": $scope.$apply.bind($scope, $scope.loadFile)
 				});
 				editor.on("changes", function() {
-					console.log("Save");
+					console.log("Editor content changed, reloading model");
 					$scope.$apply(function() {
 						$scope.assemblerTextBox = editor.getValue();
 					});
@@ -74,6 +74,11 @@
 						cm.setGutterMarker(n, "breakpoints", makeMarker());
 					}
 				});
+        $scope.setEditorContents = function(content) {
+          if (editor.getValue().trim() == "" || confirm("Are you sure you want to continue? Your present code will be overwritten.")) {
+            editor.setValue(content);
+          }
+        }
 			}, 0);
 
 			$scope.processorState = {
@@ -104,40 +109,28 @@
 				// TODO: Implement File Saving Dialog
 				alert("Save File");
 			}
-			
-			$scope.handleFileSelect = function(evt) {
+			document.getElementById('fileButton').addEventListener('change', function(evt) {
 				var files = evt.target.files;
-				var output = [];
-				
-				/*
-				// we do only support loading one file at a time
-				if (files.count != 1) {
-				  alert("Please select exactly one file!");
-					return 1;
-				}*/
-				var f = files[0];
-				// for reference: http://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript
-				var ext = f.name.substr((~-f.name.lastIndexOf(".") >>> 0) + 2);
-				var content;
-				var reader = new FileReader();
-				// confirm that file extension is viable (in defined set) 
-				if (["","arm"].indexOf(ext) >= 0) {
-					reader.onloadend = function(){
-						content = reader.result;
-						console.log(reader.result.substring(0, 200));
-					};
-				  reader.readAsText(f);
-					// currently undefined
-					alert(content);	
-				} else {
-					alert("File type not supported");
-				}
-				// TODO:
-				// if codemirror not empty: are you sure you want to continue? your present code will be overwritten. 
-				// paste content of file into codeMirror
-				// --> editor.getDoc().setValue(content);
-			}
-			document.getElementById('fileButton').addEventListener('change', $scope.handleFileSelect, false);
+
+				var file = files[0];
+        // for reference: http://stackoverflow.com/a/12900504/4674154
+        var fileExtension = file.name.substr((~-file.name.lastIndexOf(".") >>> 0) + 2);
+        if (["","arm","asm"].indexOf(fileExtension) >= 0 || confirm(fileExtension + " is not a usual assembler file extension. Continue?")) {
+          var reader = new FileReader();
+  				reader.onloadend = function() {
+            if (reader.result) {
+    					$scope.setEditorContents(reader.result);
+            } else {
+              // this API is experimental... Fall back to less helpful error message if we can't get the error string.
+              var errorString = (reader.error && reader.error.name) ? ("Error reading file: " + reader.error.name) : "Error reading file";
+              alert(errorString);
+            }
+            // reset input so that selecting the same file again works
+            document.getElementById('fileButton').value = "";
+  				};
+  			  reader.readAsText(file);
+        }
+			}, false);
 
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
@@ -245,7 +238,7 @@
     </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input">
-      <input type="file" name="fileButton" id="fileButton" style="display: none;">
+      <input type="file" name="fileButton" id="fileButton" accept=".arm,.asm" style="display: none;">
 			<div id="button-container">
 			  <div id="file-interaction-container">
 					<button ng-click="saveFile()">Save</button>
