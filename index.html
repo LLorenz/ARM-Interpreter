@@ -16,7 +16,15 @@
     </style>
 
     <script>
-		angular.module("InterpreterApp", []).controller("MainCtrl", function ($scope, $timeout) {
+		angular.module("InterpreterApp", []).filter('range', function() {
+      return function(n) {
+        var res = [];
+        for (var i = 0; i < n; i++) {
+          res.push(i);
+        }
+        return res;
+      };
+    }).controller("MainCtrl", function ($scope, $timeout) {
       // if we execute the CodeMirror initializationat controller time, we get problems with AngularJS compiler.
       // Do it later.
       $timeout(function() {
@@ -223,6 +231,41 @@
       $scope.undoLastStep = function() {
         undoLastStep();
       }
+
+      $scope.hex2Dec = function(hex) {
+        return parseInt(hex, 16);
+      }
+
+      $scope.dec2Hex = function(dec) {
+        return dec.toString(16);
+      }
+
+      $scope.dec2Hex2 = function(dec) {
+        var returner = $scope.dec2Hex(dec);
+        if (returner.length < 2) {
+          returner = "0" + returner;
+        }
+        return returner;
+      }
+
+      $scope.dec2Chr = function(dec) {
+        return (32 <= dec && dec <= 126) ? String.fromCharCode(dec) : ".";
+      }
+
+      $scope.ramModal = {};
+
+      $scope.ramModal.showRamPage = 0;
+
+      $scope.ramModal.showRamPageHexWrapper = function(val) {
+        if (arguments.length) {
+          $scope.ramModal.showRamPage = ($scope.hex2Dec(val) || 0);
+        }
+        return $scope.dec2Hex($scope.ramModal.showRamPage);
+      }
+
+      $scope.ramAt = function(index) {
+        return memory[index];
+      }
     }).directive('processorState', function() {
       return {
         templateUrl: "processorStateDirectiveTemplate.html"
@@ -252,12 +295,26 @@
 					<td><input type="checkbox" ng-model="processorState.flags.OVERFLOW"></td>
 				</tr>
       </table>
+      <h2>Memory</h2>
+      &nbsp;<a href="" ng-click="ramModal.show = true">Show</a>
     </script>
   </head>
 
 	<body ng-controller="MainCtrl">
     <div class="overlay" ng-click="abortRunCallback()" ng-show="abortRunCallback &amp;&amp; abortRunCallback.showAbort">
       Abort run
+    </div>
+    <div id="ramModal" class="overlay" ng-click="ramModal.show = false" ng-show="ramModal.show">
+      <div ng-click="$event.stopPropagation()">
+        <p><button ng-click="ramModal.showRamPage = ramModal.showRamPage - 1" ng-active="ramModal.showRamPage">&#x2190;</button> Zeige RAM von <input type="text" ng-model="ramModal.showRamPageHexWrapper" ng-model-options="{getterSetter:true}">00 bis {{ramModal.showRamPage}}FF <button ng-click="ramModal.showRamPage = ramModal.showRamPage + 1">&#x2192;</button></p>
+        <table>
+          <tr ng-repeat="i in 16 | range">
+            <td class="index">{{dec2Hex(ramModal.showRamPage * 256 + i * 16)}}</td>
+            <td ng-repeat="j in 16 | range">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+            <td ng-repeat="j in 16 | range">{{dec2Chr(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+          </tr>
+        </table>
+      </div>
     </div>
     <div id="header">ARM-Interpreter</div>
     <form id="asm-input">

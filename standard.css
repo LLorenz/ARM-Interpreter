@@ -22,9 +22,28 @@ html {
 	text-align: center;
 	font-size: 0.8em;
 	line-height: 1.2em;
-	background-color: #dedeff;
-	opacity: 0.5;
+	background-color: rgba(213, 213, 213, 0.5);
 	z-index: 1000;
+}
+
+#ramModal {
+	z-index: 2000;
+}
+
+#ramModal > * {
+	background-color: white;
+	padding: 3em;
+	border-radius: 1.5em;
+}
+
+#ramModal table {
+	font-size: 1.5em;
+	font-family: monospace;
+	border-spacing: 0.3em;
+}
+
+#ramModal table .index {
+	font-weight: 800;
 }
 
 #header, #asm-input, #console, processor-state {
