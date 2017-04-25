@@ -61,6 +61,17 @@
 					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
 						editor.addLineClass(newVal, "background", "current-line-highlight");
 					}
+					// if end of program is reached, disable stepping forward; else make sure it's enabled
+					var forwardButtons = document.getElementsByClassName("stepForward");
+					if (newVal > lineCount) {
+						for (i=0 ; i<forwardButtons.length ; i++) {
+							forwardButtons[i].disabled = true;
+						}
+					} else {
+						for (i=0 ; i<forwardButtons.length ; i++) {
+							forwardButtons[i].disabled = false;
+						}
+					}
 				});
 				$scope.$watch("assembly", function(asse) {
 					if (asse) {
@@ -342,8 +353,8 @@
 				<div id="controls-container">
 					<button ng-click="resetState()">&#x21e4;</button>
 					<button ng-click="undoLastStep()">&#x2190;</button>
-					<button ng-click="next()">&#x2192;</button>
-					<button ng-click="run()">&#x21e5;</button>
+					<button ng-click="next()" class="stepForward">&#x2192;</button>
+					<button ng-click="run()" class="stepForward">&#x21e5;</button>
   				<div class="overlay" ng-hide="assembly">Press Assemble before running</div>
   				<div class="overlay" ng-show="abortRunCallback">&nbsp;</div>
 				</div>
