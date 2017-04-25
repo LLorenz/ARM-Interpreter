@@ -119,12 +119,12 @@
 			// function to load the contents of a file from the filesystem
 			$scope.loadFile = function() {
 				// TODO: Implement File Loader
-				//alert("Load File");
+				//alert("Load File");	
 				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
 				// TODO: Implement File Saving Dialog when working locally
-				$scope.download("testname",$scope.getEditorContents());
+				$scope.download("arm-program.arm",$scope.getEditorContents());
 			}
 			document.getElementById('fileButton').addEventListener('change', function(evt) {
 				var files = evt.target.files;
@@ -276,9 +276,18 @@
     <script type="text/ng-template" id="processorStateDirectiveTemplate.html">
       <h2>Registers</h2>
 			<table class="register-table" id="registers">
-        <tr ng-repeat="register in processorState.register track by $index">
-          <td>R{{$index}}</td><td><input type="text" ng-model="processorState.register[$index]" ng-blur="normalizeInput($index)"></td>
+        <tr ng-repeat="register in 13 | range" title="R{{register}}">
+          <td>R{{register}}</td><td><input type="text" ng-model="processorState.register[register]" ng-blur="normalizeInput(register)"></td>
         </tr>
+				<tr title="R13 - Stack Pointer">
+					<td>SP</td><td><input type="text" ng-model="processorState.register[13]" ng-blur="normalizeInput(13)"></td>
+				</tr>
+				<tr title="R14 - Link Register">
+					<td>LR</td><td><input type="text" ng-model="processorState.register[14]" ng-blur="normalizeInput(14)"></td>
+				</tr>
+				<tr title="R15 - Program Counter">
+					<td>PC</td><td><input type="text" ng-model="processorState.register[15]" ng-blur="normalizeInput(15)"></td>
+				</tr>
       </table>
       <h2>Flags</h2>
       <table class="register-table" id="flags">
