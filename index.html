@@ -91,7 +91,7 @@
 					var blob = "";
 					editor.eachLine( function(line) {
 						blob += line.text;
-						blob += "\r\n"; //String.fromCharCode(10);
+						blob += "\r\n";
 					});
 					return blob;
 				}
@@ -165,6 +165,9 @@
 
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
+				for (var i = 0; i< assembler.length; i++) {
+					assembler[i] = assembler[i].split("@")[0];
+				}
         try {
           $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
         } catch (e) {
