@@ -900,7 +900,7 @@ function Command(commandString, lineNumber) {
 
 	var commandFactory = commandMap.get(opcodeString);
 	if (commandFactory == undefined) {
-		window.alert("Unknown opcode " + opcodeString);
+		window.alert("Unknown opcode \"" + opcodeString + "\" on line " + eval(lineNumber+1) );
 		return;
 	}
 
@@ -930,7 +930,21 @@ function Assembly(instructions, isBreakpoint) {
 		assert(labelsMatched, "You somehow didn't match the labels. This shouldn't be possible.");
 		newUndoStep();
 		var instructionToExecute = instructions[registers[15]];
-
+		
+		if (instructionToExecute) {
+			instructionToExecute();
+			// Check if the current instruction is a branch. If not, we increment R15 to point to the next instruction.
+			if (!instructionToExecute.isBranch) {
+				registers[15]++;
+			}
+		} else {
+			console.log("R15 at index " + registers[15] + ", there is no assembly.");
+			registers[15]++;
+		}
+		if (registers[15] > instructions.length) {
+			window.alert("End of program reached");
+		}
+		/*
 		if (!instructionToExecute) {
 			throw new RuntimeException("R15 at index " + registers[15] + ", there is no assembly.");
 		}
@@ -940,6 +954,7 @@ function Assembly(instructions, isBreakpoint) {
 			//This is NOT a branch. Therefore, we increment R15 to point to the next instruction.
 			registers[15]++;
 		}
+		*/
 	}
 
 	this.run = function (doneCallback) {
