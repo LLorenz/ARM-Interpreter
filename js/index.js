@@ -271,11 +271,7 @@ var commandMap = (function () {
 	/* Returns a function which, when invoked, sets the content of the register denoted by registerString.
 	 */
 	function setRegisterFunction(registerString) {
-		registerString = registerString.toLowerCase();
-		var regex = /^r([0-9]|1[0-5])$/;
-		var registerStringArray = registerString.match(regex);
-		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
-		var registerIndex = registerStringArray[1];
+		var registerIndex = parseRegister(registerString);
 		return function (value) {
 			registers[registerIndex] = value;
 		}
@@ -286,12 +282,38 @@ var commandMap = (function () {
 	function getRegisterFunction(registerString) {
 		registerString = registerString.toLowerCase();
 		var regex = /^r([0-9]|1[0-5])$/;
+		// catch special registers here 
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
 		var registerIndex = registerStringArray[1];
 		return function (value) {
 			return registers[registerIndex];
 		}
+	}
+	/* necessary helping function to parse also special register names SP, PC, LR correctly
+	 */
+	function parseRegister(registerString) {
+		registerString = registerString.toLowerCase();
+		var regex = /^r([0-9]|1[0-5])$/;
+		var registerStringArray;
+		// catch special registers here
+		switch (registerString) {
+			case "sp":
+				registerStringArray = ["","13"];
+				break;
+			case "lr":
+				registerStringArray = ["","14"];
+				break;
+			case "pc":
+				registerStringArray = ["","15"];
+				break;
+			default:
+				registerStringArray = registerString.match(regex);
+				console.log(registerStringArray);
+				assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
+		}
+		var registerIndex = registerStringArray[1];
+		return registerIndex;
 	}
 
 	function getLabelFunction(which, errorString) {
@@ -902,6 +924,7 @@ function Command(commandString, lineNumber) {
 	if (commandFactory == undefined) {
 		if (opcodeString != "") {
 			window.alert("Unknown opcode \"" + opcodeString + "\" on line " + eval(lineNumber+1) );
+			//return opcodeString;
 		}
 		return;
 	}
