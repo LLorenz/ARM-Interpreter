@@ -40,7 +40,9 @@ function matchLabels() {
 		}
 	}
 	for (label in labelCallbacks) {
+		console.log(label);
 		labelCallbacks.label.forEach(function (callbackItem) {
+
 			throw new UnknownLabelException(callbackItem.errorString);
 		})
 	}
@@ -309,7 +311,6 @@ var commandMap = (function () {
 				break;
 			default:
 				registerStringArray = registerString.match(regex);
-				console.log(registerStringArray);
 				assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
 		}
 		var registerIndex = registerStringArray[1];
@@ -323,6 +324,7 @@ var commandMap = (function () {
 		labelCallbacks[which].push({
 			callback: function (addressToSet) {
 				address = addressToSet;
+				console.log(address);
 			},
 			errorString: "Unknown label " + which
 		});
@@ -899,14 +901,16 @@ var commandMap = (function () {
 	());
 
 function Command(commandString, lineNumber) {
+	var isOnlyLabel = commandString.trim().endsWith(":");
 	commandString = commandString.trim();
 	var opcodeLength = commandString.indexOf(" ");
 	//TODO das deckt definitiv nicht alle Fälle ab!
 	if (opcodeLength == -1 && commandString.charAt(commandString.length - 1) == ':') {
 		// this is a line with a label only.
-		symbolTable[commandString.substr(0, opcodeLength - 1).trim()] = lineNumber;
+		symbolTable[commandString.split(":")[0]] = lineNumber;
+		//symbolTable[commandString.substr(0, opcodeLength - 1).trim()] = lineNumber; 
 		// return a noop
-		return function () {}
+		return;
 	} else if (commandString.charAt(opcodeLength - 1) == ':') {
 		// this is a line with a label and a following opcode.
 		symbolTable[commandString.substr(0, opcodeLength - 1).trim()] = lineNumber;
