@@ -266,6 +266,14 @@
         return (32 <= dec && dec <= 126) ? String.fromCharCode(dec) : ".";
       }
 
+      $scope.dec2Bin = function(dec) {
+        var returner = "";
+        for (var i = 7; i >= 0; i--) {
+          returner += Math.floor(dec % Math.pow(2, i + 1) / Math.pow(2, i));
+        }
+        return returner;
+      }
+
       $scope.ramModal = {};
 
       $scope.ramModal.showRamPage = 0;
@@ -333,7 +341,7 @@
         <table>
           <tr ng-repeat="i in 16 | range">
             <td class="index">{{dec2Hex(ramModal.showRamPage * 256 + i * 16)}}</td>
-            <td ng-repeat="j in 16 | range">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+            <td ng-repeat="j in 16 | range" title="Dezimal unsigned {{ramAt(ramModal.showRamPage * 256 + i * 16 + j)}} &#10;Binär {{dec2Bin(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
             <td ng-repeat="j in 16 | range">{{dec2Chr(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
           </tr>
         </table>
