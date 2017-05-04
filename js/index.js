@@ -851,7 +851,11 @@ var commandMap = (function () {
 			var setResult = setRegisterFunction(result);
 
 			return function () {
-				setResult(memory[getIndirectReference()]);
+				// assume little endian
+				setResult(memory[getIndirectReference()] +
+				          memory[getIndirectReference() + 1] * Math.pow(2, 8) +
+								  memory[getIndirectReference() + 2] * Math.pow(2, 16) +
+								  memory[getIndirectReference() + 3] * Math.pow(2, 24));
 			}
 		}
 	});
@@ -868,7 +872,11 @@ var commandMap = (function () {
 
 			return function () {
 
-				setMemoryAddress(getIndirectReference(), getResult());
+				// assume little endian
+				setMemoryAddress(getIndirectReference(), getResult() % Math.pow(2, 8));
+				setMemoryAddress(getIndirectReference() + 1, getResult() >>> 8 % Math.pow(2, 8));
+				setMemoryAddress(getIndirectReference() + 2, getResult() >>> 16 % Math.pow(2, 8));
+				setMemoryAddress(getIndirectReference() + 3, getResult() >>> 24 % Math.pow(2, 8));
 			}
 		}
 	})
