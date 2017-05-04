@@ -282,12 +282,14 @@ var commandMap = (function () {
 	/* Returns a function which, when invoked, returns the content of the register denoted by registerString.
 	 */
 	function getRegisterFunction(registerString) {
+		/*
 		registerString = registerString.toLowerCase();
 		var regex = /^r([0-9]|1[0-5])$/;
 		// catch special registers here 
 		var registerStringArray = registerString.match(regex);
 		assert(registerStringArray, registerString + " is invalid, it must match the regular expression " + regex);
-		var registerIndex = registerStringArray[1];
+		*/
+		var registerIndex = parseRegister(registerString);
 		return function (value) {
 			return registers[registerIndex];
 		}
@@ -460,7 +462,7 @@ var commandMap = (function () {
 				if (writeStatus) {
 					flags.CARRY = getNthBit(flexOpSecondPart[1] - 1, value) ? true : false;
 				}
-				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right will with 1's
+				return convToUInt32((value >> flexOpSecondPart[1])); // Shift right fill with 1's
 			}
 		case "LSR":
 			return function () {
@@ -471,7 +473,7 @@ var commandMap = (function () {
 				if (writeStatus) {
 					flags.CARRY = getNthBit(flexOpSecondPart[1] - 1, value) ? true : false;
 				}
-				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right will with 0's
+				return convToUInt32((value >>> flexOpSecondPart[1])); // Shift right fill with 0's
 			}
 		case "LSL":
 			return function () {
@@ -895,7 +897,9 @@ var commandMap = (function () {
 
 	populateCommandMap("B<cond>", branch.bind(null, false), true);
 	populateCommandMap("BL<cond>", branch.bind(null, true), true);
-
+// command for "BX<cond> LR" for conditional program end 
+	
+	
 	return returner;
 }
 	());
