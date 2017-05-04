@@ -79,32 +79,32 @@ var memory = new Uint8Array(1024 * 1024) //TODO should be somehow dynamically al
 
 	// array of undoObjects. Each undoObject has property register (registerss copied) and memory (object which associates memory address to value).
 
-	var undoSteps = [];
+	var undoStack = [];
 
 function newUndoStep() {
 	var undoRegisters = {};
 	for (i = 0; i < 16; i++) {
 		undoRegisters[i] = registers[i];
 	}
-	undoSteps.push({
+	undoStack.push({
 		registers: undoRegisters,
 		memory: {}
 	});
 }
 
 function setMemoryAddress(address, value) {
-	if (undoSteps[undoSteps.length - 1].memory[address] === undefined) {
+	if (undoStack[undoStack.length - 1].memory[address] === undefined) {
 		// if there already is a value for undoing, it is older. Then, we use that value.
-		undoSteps[undoSteps.length - 1].memory[address] = memory[address];
+		undoStack[undoStack.length - 1].memory[address] = memory[address];
 	}
 
 	memory[address] = value;
 }
 
 function undoLastStep() {
-	console.log("before", undoSteps);
-	var stepToUndo = undoSteps.pop();
-	console.log("after", undoSteps);
+	console.log("before", undoStack);
+	var stepToUndo = undoStack.pop();
+	console.log("after", undoStack);
 	for (i = 0; i < 16; i++) {
 		registers[i] = stepToUndo.registers[i];
 	}
@@ -874,7 +874,7 @@ var commandMap = (function () {
 	})
 
 	function branch(link, whereTo) {
-		var whereToContennt;
+		var whereToContent;
 		try {
 			whereToContent = getRegisterFunction(whereTo);
 		} catch (e) {
@@ -897,6 +897,11 @@ var commandMap = (function () {
 
 	populateCommandMap("B<cond>", branch.bind(null, false), true);
 	populateCommandMap("BL<cond>", branch.bind(null, true), true);
+	
+	// These commands don't actually change the instruction set, but we link BX > B and BLX > BL
+	// This allows easily adapting the programs from the script
+	populateCommandMap("BX<cond", branch.bind(null, false), true);
+	populateCommandMap("BLX<cond>", branch.bind(null, true), true);
 // command for "BX<cond> LR" for conditional program end 
 	
 	
@@ -975,9 +980,6 @@ function Assembly(instructions, isBreakpoint) {
 			console.log("R15 at index " + registers[15] + ", there is no assembly.");
 			registers[15]++;
 		}
-		if (registers[15] == instructions.length) {
-			window.alert("End of program reached");
-		}
 	}
 
 	this.run = function(doneCallback) {
@@ -997,12 +999,15 @@ function Assembly(instructions, isBreakpoint) {
 		};
 	}
 
+	this.isBegin = function() {
+		return undoStack.length == 0;
+	}
 	this.isEnd = function() {
 		return registers[15] == instructions.length;
 	}
 
 	this.resetState = function() {
-		undoSteps = [];
+		undoStack = [];
 		for (i = 0; i < 16; i++) {
 			registers[i] 	= 0;
 		}

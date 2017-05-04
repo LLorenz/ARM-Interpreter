@@ -123,8 +123,7 @@
 				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
-				// TODO: Implement File Saving Dialog when working locally
-				$scope.download("arm-program.arm",$scope.getEditorContents());
+				$scope.download(prompt("Please enter the file name","filename.arm"),$scope.getEditorContents());
 			}
 			document.getElementById('fileButton').addEventListener('change', function(evt) {
 				var files = evt.target.files;
@@ -189,7 +188,7 @@
         if ($scope.assembly) {
           $scope.assembly.resetState();
         } else {
-      		undoSteps = [];
+      		undoStack = [];
       		for (i = 0; i < 16; i++) {
       			$scope.processorState.register[i] 	= 0;
       		}
@@ -346,14 +345,14 @@
 			<div id="button-container">
 			  <div id="file-interaction-container">
 					<button ng-click="saveFile()">Save</button>
-					<button ng-click="loadFile()">Load</button>
+					<button ng-click="loadFile()" ng-disabled="assembly">Load</button>
 				</div>
 				<div id="assemble-container">
 					<button id="assembleSubmit" ng-click="assembleOrDestroy()" type="submit" ng-disabled="abortRunCallback">{{assembly ? 'Edit' : 'Assemble'}}</button>
 				</div>
 				<div id="controls-container">
-					<button ng-click="resetState()">&#x21e4;</button>
-					<button ng-click="undoLastStep()">&#x2190;</button>
+					<button ng-click="resetState()" ng-disabled="assembly.isBegin()">&#x21e4;</button>
+					<button ng-click="undoLastStep()" ng-disabled="assembly.isBegin()">&#x2190;</button>
 					<button ng-click="next()" class="stepForward" ng-disabled="assembly.isEnd()">&#x2192;</button>
 					<button ng-click="run()" class="stepForward" ng-disabled="assembly.isEnd()">&#x21e5;</button>
   				<div class="overlay" ng-hide="assembly">Press Assemble before running</div>
