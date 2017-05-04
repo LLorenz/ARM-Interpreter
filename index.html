@@ -61,17 +61,6 @@
 					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
 						editor.addLineClass(newVal, "background", "current-line-highlight");
 					}
-					// if end of program is reached, disable stepping forward; else make sure it's enabled
-					var forwardButtons = document.getElementsByClassName("stepForward");
-					if (newVal > lineCount) {
-						for (i=0 ; i<forwardButtons.length ; i++) {
-							forwardButtons[i].disabled = true;
-						}
-					} else {
-						for (i=0 ; i<forwardButtons.length ; i++) {
-							forwardButtons[i].disabled = false;
-						}
-					}
 				});
 				$scope.$watch("assembly", function(asse) {
 					if (asse) {
@@ -181,6 +170,7 @@
 				}
         try {
           $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
+          $scope.resetState();
         } catch (e) {
           if (!e instanceof ParseException) {
 						throw e;
@@ -196,15 +186,18 @@
       }
 
 			$scope.resetState = function() {
-        undoSteps = [];
-				for (i = 0; i < 16; i++) {
-    			$scope.processorState.register[i] 	= 0;
-    		}
-    		$scope.processorState.flags.CARRY 		= false;
-    		$scope.processorState.flags.ZERO 		= false;
-    		$scope.processorState.flags.NEGATIVE 	= false;
-    		$scope.processorState.flags.OVERFLOW 	= false;
-    		$scope.processorState.flags.PARITY 		= false;
+        if ($scope.assembly) {
+          $scope.assembly.resetState();
+        } else {
+      		undoSteps = [];
+      		for (i = 0; i < 16; i++) {
+      			$scope.processorState.register[i] 	= 0;
+      		}
+      		$scope.processorState.flags.CARRY 		= false;
+      		$scope.processorState.flags.ZERO 			= false;
+      		$scope.processorState.flags.NEGATIVE 	= false;
+      		$scope.processorState.flags.OVERFLOW 	= false;
+        }
     	}
 
       $scope.next = function() {
@@ -264,6 +257,14 @@
 
       $scope.dec2Chr = function(dec) {
         return (32 <= dec && dec <= 126) ? String.fromCharCode(dec) : ".";
+      }
+
+      $scope.dec2Bin = function(dec) {
+        var returner = "";
+        for (var i = 7; i >= 0; i--) {
+          returner += Math.floor(dec % Math.pow(2, i + 1) / Math.pow(2, i));
+        }
+        return returner;
       }
 
       $scope.ramModal = {};
@@ -333,7 +334,7 @@
         <table>
           <tr ng-repeat="i in 16 | range">
             <td class="index">{{dec2Hex(ramModal.showRamPage * 256 + i * 16)}}</td>
-            <td ng-repeat="j in 16 | range">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+            <td ng-repeat="j in 16 | range" title="Dezimal unsigned {{ramAt(ramModal.showRamPage * 256 + i * 16 + j)}} &#10;Binär {{dec2Bin(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
             <td ng-repeat="j in 16 | range">{{dec2Chr(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
           </tr>
         </table>
@@ -353,8 +354,8 @@
 				<div id="controls-container">
 					<button ng-click="resetState()">&#x21e4;</button>
 					<button ng-click="undoLastStep()">&#x2190;</button>
-					<button ng-click="next()" class="stepForward">&#x2192;</button>
-					<button ng-click="run()" class="stepForward">&#x21e5;</button>
+					<button ng-click="next()" class="stepForward" ng-disabled="assembly.isEnd()">&#x2192;</button>
+					<button ng-click="run()" class="stepForward" ng-disabled="assembly.isEnd()">&#x21e5;</button>
   				<div class="overlay" ng-hide="assembly">Press Assemble before running</div>
   				<div class="overlay" ng-show="abortRunCallback">&nbsp;</div>
 				</div>
