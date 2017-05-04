@@ -275,7 +275,7 @@ var commandMap = (function () {
 	function setRegisterFunction(registerString) {
 		var registerIndex = parseRegister(registerString);
 		return function (value) {
-			registers[registerIndex] = value;
+			registers[registerIndex] = (registerIndex == 15) ? value - 1 : value;
 		}
 	}
 
@@ -971,17 +971,17 @@ function Assembly(instructions, isBreakpoint) {
 			console.log("R15 at index " + registers[15] + ", there is no assembly.");
 			registers[15]++;
 		}
-		if (registers[15] > instructions.length) {
+		if (registers[15] == instructions.length) {
 			window.alert("End of program reached");
 		}
 	}
 
-	this.run = function (doneCallback) {
+	this.run = function(doneCallback) {
 		var aborted = false;
 		var that = this;
 		function nextStep() {
 			that.step();
-			if (isBreakpoint(registers[15]) || aborted) {
+			if (that.isEnd() || isBreakpoint(registers[15]) || aborted) {
 				doneCallback();
 			} else {
 				setTimeout(nextStep, 0);
@@ -991,6 +991,22 @@ function Assembly(instructions, isBreakpoint) {
 		return function () {
 			aborted = true;
 		};
+	}
+
+	this.isEnd = function() {
+		return registers[15] == instructions.length;
+	}
+
+	this.resetState = function() {
+		undoSteps = [];
+		for (i = 0; i < 16; i++) {
+			registers[i] 	= 0;
+		}
+		registers[14]    = instructions.length;
+		flags.CARRY 		= false;
+		flags.ZERO 			= false;
+		flags.NEGATIVE 	= false;
+		flags.OVERFLOW 	= false;
 	}
 }
 
