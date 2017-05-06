@@ -121,6 +121,7 @@ html {
 	background-color:black;
 	color:white;
 	font-family:monospace;
+	white-space: pre;
 }
 
 @keyframes cursorblink {

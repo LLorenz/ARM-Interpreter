@@ -163,13 +163,17 @@
 				document.body.removeChild(element);
 			}
 
+      $scope.consoleContent = "";
+
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
 				for (var i = 0; i< assembler.length; i++) {
 					assembler[i] = assembler[i].split("@")[0];
 				}
         try {
-          $scope.assembly = new Assembly(assembler, $scope.isLineToggled);
+          $scope.assembly = new Assembly(assembler, $scope.isLineToggled, function(text) {
+            $scope.consoleContent += text + "\n";
+          });
           $scope.resetState();
         } catch (e) {
           if (!e instanceof ParseException) {
@@ -271,8 +275,8 @@
       /* Returns which RAM page a given address belongs to. Really easy with
        * bitshifting, but angular expressions don't support those, so we do it here.
        */
-      $scope.pagify = function(adress) {
-        return adress >>> 8;
+      $scope.pagify = function(address) {
+        return address >>> 8;
       }
 
       $scope.ramModal = {};
@@ -371,7 +375,7 @@
 				</div>
 			</div>
 		</form>
-    <div id="console">Konsole - im Moment ohne Funktion<span class="cursor">&nbsp;</span></div>
+    <div id="console">{{consoleContent}}<span class="cursor">&nbsp;</span></div>
     <processor-state></processor-state>
   </body>
 </html>
