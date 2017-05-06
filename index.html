@@ -193,6 +193,7 @@
       		for (i = 0; i < 16; i++) {
       			$scope.processorState.register[i] 	= 0;
       		}
+          $scope.processorState.register[13]    = 1000000;
       		$scope.processorState.flags.CARRY 		= false;
       		$scope.processorState.flags.ZERO 			= false;
       		$scope.processorState.flags.NEGATIVE 	= false;
@@ -267,6 +268,13 @@
         return returner;
       }
 
+      /* Returns which RAM page a given address belongs to. Really easy with
+       * bitshifting, but angular expressions don't support those, so we do it here.
+       */
+      $scope.pagify = function(adress) {
+        return adress >>> 8;
+      }
+
       $scope.ramModal = {};
 
       $scope.ramModal.showRamPage = 0;
@@ -331,11 +339,12 @@
     <div id="ramModal" class="overlay" ng-click="ramModal.show = false" ng-show="ramModal.show">
       <div ng-click="$event.stopPropagation()">
         <p><button ng-click="ramModal.showRamPage = ramModal.showRamPage - 1" ng-active="ramModal.showRamPage">&#x2190;</button> Zeige RAM von <input type="text" ng-model="ramModal.showRamPageHexWrapper" ng-model-options="{getterSetter:true}">00 bis {{ramModal.showRamPage}}FF <button ng-click="ramModal.showRamPage = ramModal.showRamPage + 1">&#x2192;</button></p>
+        <a href="" ng-click="ramModal.showRamPage = pagify(processorState.register[13])">Gehe zu Stack</a>
         <table>
           <tr ng-repeat="i in 16 | range">
             <td class="index">{{dec2Hex(ramModal.showRamPage * 256 + i * 16)}}</td>
-            <td ng-repeat="j in 16 | range" title="Decimal {{ramAt(ramModal.showRamPage * 256 + i * 16 + j)}} &#10;Binary {{dec2Bin(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
-            <td ng-repeat="j in 16 | range">{{dec2Chr(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+            <td ng-repeat="j in 16 | range" ng-style="{'font-weight': processorState.register[13] == ramModal.showRamPage * 256 + i * 16 + j ? 700 : 500}" title="Decimal {{ramAt(ramModal.showRamPage * 256 + i * 16 + j)}} &#10;Binary {{dec2Bin(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}">{{dec2Hex2(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
+            <td ng-repeat="j in 16 | range" ng-style="{'font-weight': processorState.register[13] == ramModal.showRamPage * 256 + i * 16 + j ? 700 : 500}">{{dec2Chr(ramAt(ramModal.showRamPage * 256 + i * 16 + j))}}</td>
           </tr>
         </table>
       </div>
