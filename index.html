@@ -55,23 +55,27 @@
 					return marker;
 				}
 				$scope.$watch("processorState.register[15]", function(newVal, oldVal) {
-					var lineCount = editor.lineCount();
+          if (!$scope.assembly) {
+            // We don't have an assembled program currently. Therefore, marking the current line number is pointless.
+            return;
+          }
+          var lineCount = editor.lineCount();
 					if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
-						editor.removeLineClass(oldVal, "background", "current-line-highlight");
+						editor.removeLineClass($scope.assembly.getLineNumber(oldVal), "background", "current-line-highlight");
 					}
 					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
-						editor.addLineClass(newVal, "background", "current-line-highlight");
+						editor.addLineClass($scope.assembly.getLineNumber(newVal), "background", "current-line-highlight");
 					}
 				});
-				$scope.$watch("assembly", function(asse) {
-					if (asse) {
+				$scope.$watch("assembly", function(newVal, oldVal) {
+					if (newVal) {
 						editor.setOption("readOnly", true);
 						angular.element(editor.getWrapperElement()).addClass("read-only");
-						editor.addLineClass($scope.processorState.register[15], "background", "current-line-highlight");
-					} else {
+						editor.addLineClass(newVal.getLineNumber($scope.processorState.register[15]), "background", "current-line-highlight");
+					} else if (oldVal) {
 						editor.setOption("readOnly", false);
 						angular.element(editor.getWrapperElement()).removeClass("read-only");
-						editor.removeLineClass($scope.processorState.register[15], "background", "current-line-highlight");
+						editor.removeLineClass(oldVal.getLineNumber($scope.processorState.register[15]), "background", "current-line-highlight");
 					}
 				});
 				editor.on("gutterClick", function(cm, n) {
@@ -227,7 +231,7 @@
               $timeout.cancel(showAbortCallback);
               $scope.abortRunCallback = undefined;
             });
-          });
+          }, $scope.$digest.bind($scope)); // $digest changes after every step
           $scope.abortRunCallback = function() {
             abortCallback();
             $scope.abortRunCallback = undefined;
