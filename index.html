@@ -295,6 +295,16 @@
         return $scope.dec2Hex($scope.ramModal.showRamPage);
       }
 
+      $scope.registerHexWrapper = function(register) {
+        return function(val) {
+          console.log("Register", register, val)
+          if (arguments.length) {
+            $scope.processorState.register[register] = (Math.min(MAX_INTEGER - 1, $scope.hex2Dec(val)) || 0);
+          }
+          return $scope.dec2Hex($scope.processorState.register[register]);
+        }
+      }
+
       $scope.ramAt = function(index) {
         return memory[index];
       }
@@ -309,16 +319,16 @@
       <h2>Registers</h2>
 			<table class="register-table" id="registers">
         <tr ng-repeat="register in 13 | range" title="R{{register}}">
-          <td>R{{register}}</td><td><input type="text" ng-model="processorState.register[register]" ng-blur="normalizeInput(register)"></td>
+          <td>R{{register}}</td><td><input type="text" ng-model="registerHexWrapper(register)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
         </tr>
 				<tr title="R13 - Stack Pointer">
-					<td>SP</td><td><input type="text" ng-model="processorState.register[13]" ng-blur="normalizeInput(13)"></td>
+					<td>SP</td><td><input type="text" ng-model="registerHexWrapper(13)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R14 - Link Register">
-					<td>LR</td><td><input type="text" ng-model="processorState.register[14]" ng-blur="normalizeInput(14)"></td>
+					<td>LR</td><td><input type="text" ng-model="registerHexWrapper(14)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R15 - Program Counter">
-					<td>PC</td><td><input type="text" ng-model="processorState.register[15]" ng-blur="normalizeInput(15)"></td>
+					<td>PC</td><td><input type="text" ng-model="registerHexWrapper(15)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
       </table>
       <h2>Flags</h2>
