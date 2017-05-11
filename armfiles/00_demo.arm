@@ -15,7 +15,9 @@ bl scanNumber
 @Ausgabe
 ldr r1,=name
 ldr r2,=age
-cmp r2,#18
+ldr r3,[r2]
+mov r4 #18
+cmp r3, r4
 ldr r0,=formatDu
 ldrge r0,=formatSie
 bl printf
