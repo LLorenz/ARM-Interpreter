@@ -46,8 +46,9 @@
 						$scope.assemblerTextBox = editor.getValue();
 					});
 				});
-				$scope.isLineToggled = function(lineNumber) {
-					return !!editor.lineInfo(lineNumber).gutterMarkers;
+        var breakpoints = {};
+				$scope.isBreakpointOnCommand = function(commandIndex) {
+					return !!breakpoints[commandIndex];
 				}
 				function makeMarker() {
 					var marker = document.createElement("div");
@@ -77,15 +78,22 @@
 						editor.setOption("readOnly", false);
 						angular.element(editor.getWrapperElement()).removeClass("read-only");
 						editor.removeLineClass(oldVal.getLineNumber($scope.processorState.register[15]), "background", "current-line-highlight");
+            breakpoints = {};
+            for (var i = 0; i < editor.lineCount(); i++) {
+    					cm.setGutterMarker(i, "breakpoints", null);
+            }
 					}
 				});
 				editor.on("gutterClick", function(cm, n) {
+          n = $scope.assembly.getInfoForLine(n);
 					console.log(n);
-					var info = cm.lineInfo(n);
-					if ($scope.isLineToggled(n)) {
-						cm.setGutterMarker(n, "breakpoints", null);
+					var info = cm.lineInfo(n.line);
+					if ($scope.isBreakpointOnCommand(n.command)) {
+            breakpoints[n.command] = false;
+						cm.setGutterMarker(n.line, "breakpoints", null);
 					} else {
-						cm.setGutterMarker(n, "breakpoints", makeMarker());
+            breakpoints[n.command] = true;
+						cm.setGutterMarker(n.line, "breakpoints", makeMarker());
 					}
 				});
         $scope.setEditorContents = function(content) {
@@ -179,7 +187,7 @@
 					assembler[i] = assembler[i].split("@")[0];
 				}
         try {
-          $scope.assembly = new Assembly(assembler, $scope.isLineToggled, function(text) {
+          $scope.assembly = new Assembly(assembler, $scope.isBreakpointOnCommand, function(text) {
             $scope.consoleContent += text + "\n";
           });
           $scope.resetState();
