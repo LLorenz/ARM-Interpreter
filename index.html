@@ -129,7 +129,10 @@
 				document.querySelector('#fileButton').click();
 			};
 			$scope.saveFile = function() {
-				$scope.download(prompt("Please enter the file name","filename.arm"),$scope.getEditorContents());
+				var filename = prompt("Please enter the file name","filename.arm");
+				if (filename != null) {
+					$scope.download(filename,$scope.getEditorContents());
+				}
 			}
 			document.getElementById('fileButton').addEventListener('change', function(evt) {
 				var files = evt.target.files;
@@ -297,7 +300,7 @@
 
       $scope.registerHexWrapper = function(register) {
         return function(val) {
-          console.log("Register", register, val)
+          //console.log("Register", register, val)
           if (arguments.length) {
             $scope.processorState.register[register] = (Math.min(MAX_INTEGER - 1, $scope.hex2Dec(val)) || 0);
           }
