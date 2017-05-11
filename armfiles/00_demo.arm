@@ -1,0 +1,33 @@
+push {lr} @LR auf Stack schieben -> Sichern für Ende
+
+@Eingabe Name
+ldr r0,=nameprompt
+bl printf
+ldr r0,=name
+bl scanString
+
+@Eingabe Alter
+ldr r0,=ageprompt
+bl printf
+ldr r0,=age
+bl scanNumber
+
+@Ausgabe
+ldr r1,=name
+ldr r2,=age
+cmp r2,#18
+ldr r0,=formatDu
+ldrge r0,=formatSie
+bl printf
+
+@Ende
+pop {pc}
+
+formatSie: .asciz "Hallo %s, Sie sind %i Jahre alt."
+formatDu: .asciz "Hallo %s, du bist %i Jahre alt."
+
+nameprompt: .asciz "Bitte Name eingeben"
+name: .space 200
+
+ageprompt: .asciz "Bitte Alter eingeben"
+age: .space 4

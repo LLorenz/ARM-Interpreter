@@ -1,0 +1,10 @@
+MOV R0, #17@
+MOV R1, #23@
+MOV R2, #0@
+.L1:
+MOVS R0, R0, LSR #1@@
+ADDCS R2, R2, R1@
+MOV R1, R1, LSL #1@
+BNE .L1@
+MOV R0, R2@
+bxlr
