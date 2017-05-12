@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
     <!-- this is Angular 1 -->
     <script src="vendor/angular.js"></script>
+    <script src="vendor/scrollglue.js"></script>
     <script src="lib/interpreter.js"></script>
     <style>
 		* {
@@ -18,7 +19,7 @@
 
     <script>
     "use strict";
-		angular.module("InterpreterApp", []).filter('range', function() {
+		angular.module("InterpreterApp", ['luegg.directives']).filter('range', function() {
       return function(n) {
         var res = [];
         for (var i = 0; i < n; i++) {
@@ -80,7 +81,7 @@
 						editor.removeLineClass(oldVal.getLineNumber($scope.processorState.register[15]), "background", "current-line-highlight");
             breakpoints = {};
             for (var i = 0; i < editor.lineCount(); i++) {
-    					cm.setGutterMarker(i, "breakpoints", null);
+    					editor.setGutterMarker(i, "breakpoints", null);
             }
 					}
 				});
@@ -209,7 +210,6 @@
         if ($scope.assembly) {
           $scope.assembly.resetState();
         } else {
-      		undoStack = [];
       		for (i = 0; i < 16; i++) {
       			$scope.processorState.register[i] 	= 0;
       		}
@@ -401,7 +401,7 @@
 				</div>
 			</div>
 		</form>
-    <div id="console">{{consoleContent}}<span class="cursor">&nbsp;</span></div>
+    <div id="console" scroll-glue>{{consoleContent}}<span class="cursor">&nbsp;</span></div>
     <processor-state></processor-state>
   </body>
 </html>
