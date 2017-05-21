@@ -330,16 +330,16 @@
       <h2>Registers</h2>
 			<table class="register-table" id="registers">
         <tr ng-repeat="register in 13 | range" title="R{{register}}">
-          <td>R{{register}}</td><td><input type="text" ng-model="registerHexWrapper(register)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+          <td>R{{register}}</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(register)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
         </tr>
 				<tr title="R13 - Stack Pointer">
-					<td>SP</td><td><input type="text" ng-model="registerHexWrapper(13)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>SP</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(13)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R14 - Link Register">
-					<td>LR</td><td><input type="text" ng-model="registerHexWrapper(14)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>LR</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(14)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R15 - Program Counter">
-					<td>PC</td><td><input type="text" ng-model="registerHexWrapper(15)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>PC</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(15)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
       </table>
       <h2>Flags</h2>

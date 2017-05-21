@@ -182,9 +182,13 @@ h2 {
 
 .register-table#registers td:nth-child(2) > * {
 	display:block;
-	width:100%;
-	min-width: 1.25em;
 	height:1.25em;
+}
+
+.register-table#registers input[type=text] {
+	font-family: monospace;
+	text-align: right;
+	display: inline;
 }
 
 .register-table#flags td {
@@ -196,7 +200,7 @@ h2 {
 }
 .register-table#flags td > * {
 	display: block;
-	width: 100%;
+	width:100%;
 	min-width: 1.25em;
 	height: 1.25em;
 }
@@ -213,5 +217,4 @@ h2 {
 	font-size:1em;
 	line-height:1.25em;
 	border:none;
-	font-family: monospace;
 }
