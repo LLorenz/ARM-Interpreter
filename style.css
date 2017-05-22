@@ -55,7 +55,7 @@ html {
 	top:0;
 	height:2.5em;
 	left:0;
-	right:20%;
+	right:15%;
 	line-height: 2.5em;
 	font-size: 2em;
 	text-align:center;
@@ -67,7 +67,7 @@ html {
 	top:5em;
 	bottom:5em;
 	left:0;
-	width:80%;
+	width:85%;
 }
 
 #asm-input .CodeMirror {
@@ -117,7 +117,7 @@ html {
 	height:5em;
 	bottom:0;
 	left:0;
-	width:80%;
+	width:85%;
 	background-color:black;
 	color:white;
 	font-family:monospace;
@@ -145,7 +145,7 @@ processor-state {
 	background-color:#dedeff;
 	top:0em;
 	bottom:0em;
-	width:20%;
+	width:15%;
 	right:0;
 }
 
