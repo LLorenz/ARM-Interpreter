@@ -228,6 +228,7 @@
 					if (!e instanceof RuntimeException) {
 						throw e;
           }
+console.log(e.stack);
 					alert("Error at runtime: " + e.message);
         }
       }
@@ -252,6 +253,7 @@
           if (!e instanceof RuntimeException) {
             throw e;
           }
+console.log(e.stack);
           alert("Error at runtime: " + e.message);
         }
       }
