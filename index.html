@@ -63,10 +63,11 @@
             return;
           }
           var lineCount = editor.lineCount();
-					if (Number.isInteger(oldVal) && 0 <= oldVal && oldVal < lineCount) {
+					if (Number.isInteger(oldVal) && 0 <= oldVal && $scope.assembly.getLineNumber(oldVal) < lineCount) {
 						editor.removeLineClass($scope.assembly.getLineNumber(oldVal), "background", "current-line-highlight");
 					}
-					if (Number.isInteger(newVal) && 0 <= newVal && newVal < lineCount) {
+					if (Number.isInteger(newVal) && 0 <= newVal && $scope.assembly.getLineNumber(newVal) < lineCount) {
+            console.log(oldVal, newVal, $scope.assembly.getLineNumber(newVal));
 						editor.addLineClass($scope.assembly.getLineNumber(newVal), "background", "current-line-highlight");
 					}
 				});
