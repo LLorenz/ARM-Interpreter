@@ -291,6 +291,17 @@ console.log(e.stack);
         return returner;
       }
 
+      $scope.registerBinWrapper = function(register) {
+        var returner = "";
+        for (var i = 31; i >= 0; i--) {
+          returner += Math.floor($scope.processorState.register[register] % Math.pow(2, i + 1) / Math.pow(2, i));
+          if ((i % 8) == 0 && i != 0) {
+            returner += " ";
+          }
+        }
+        return returner;
+      }
+
       /* Returns which RAM page a given address belongs to. Really easy with
        * bitshifting, but angular expressions don't support those, so we do it here.
        */
@@ -333,16 +344,16 @@ console.log(e.stack);
       <h2>Registers</h2>
 			<table class="register-table" id="registers">
         <tr ng-repeat="register in 13 | range" title="R{{register}}">
-          <td>R{{register}}</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(register)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+          <td>R{{register}}</td><td>0x<input title="{{registerBinWrapper(register)}}" type="text" size="8" ng-model="registerHexWrapper(register)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
         </tr>
 				<tr title="R13 - Stack Pointer">
-					<td>SP</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(13)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>SP</td><td>0x<input title="{{registerBinWrapper(13)}}" type="text" size="8" ng-model="registerHexWrapper(13)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R14 - Link Register">
-					<td>LR</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(14)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>LR</td><td>0x<input title="{{registerBinWrapper(14)}}" type="text" size="8" ng-model="registerHexWrapper(14)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
 				<tr title="R15 - Program Counter">
-					<td>PC</td><td>0x<input type="text" size="8" ng-model="registerHexWrapper(15)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
+					<td>PC</td><td>0x<input title="{{registerBinWrapper(15)}}" type="text" size="8" ng-model="registerHexWrapper(15)" ng-model-options="{getterSetter:true}" ng-blur="normalizeInput(register)"></td>
 				</tr>
       </table>
       <h2>Flags</h2>
