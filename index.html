@@ -186,7 +186,7 @@
       $scope.assembleTextBox = function() {
 				var assembler = $scope.assemblerTextBox.split("\n");
 				for (var i = 0; i< assembler.length; i++) {
-					assembler[i] = assembler[i].split("@")[0];
+					assembler[i] = assembler[i].split("@")[0].split("//")[0];
 				}
         try {
           $scope.assembly = new Assembly(assembler, $scope.isBreakpointOnCommand, function(text) {
