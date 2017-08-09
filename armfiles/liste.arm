@@ -1,0 +1,83 @@
+@ Loesung Aufgabe 3 und 4 von Praktikum Termin4 Rechnerarchitektur 
+@ Name: 	Andreas Müller
+@ Datum:	WS13/14
+	.file "liste.S"
+	.text 		@ legt eine Textsection fuer PrgrammCode + Konstanten an
+	.align 2 	@ sorgt dafuer, dass nachfolgende Anweisungen auf einer durch 4 teilbaren Adresse liegen	
+				@ unteren 2 Bit sind 0
+	.global main 	@ nimmt das Symbol main in die globale Sysmboltabelle auf
+	.type main,function
+	
+main:
+	push {r4-r11, lr} 	@ Ruecksprungadresse und Register sichern
+kopieren:
+						@ hier Ihr Programm zum Kopieren einer Byte-Tabelle (je 8Bit) 
+						@ in eine Word-Tabelle (je 32Bit) einfuegen
+		LDR	r1, TAB1	@ r1 zeigt auf Liste1
+		LDR	r2, TAB2	@ r2 zeigt auf Liste2
+@		LDR r1, = Liste1 @ Lade Adresse der Liste 1 in r1
+@		LDR r2, = Liste2 @ Lade Adresse der Liste 2 in r2
+@		LDRB r9, [r1]	@ r3 gibt Länge der Liste 1 an
+		LDR r9, [r1]
+		MOV r9, r9, LSL #24
+		MOV r9, r9, ASR #24
+		MVN r3, #0xff	@ Maske 0xFFFFFF00 um negative Zahlen zu erweitern
+		
+loop:	
+@		LDRSB r0, [r1], #4	@ lade ersten Wert Liste1, inkrementiere Zeiger1
+		LDRB r0, [r1], #1	@ lade ersten Wert der Liste 1
+		TST	r0, #0x80
+		ORRNE r0, r0, r3		
+		STR	r0, [r2], #4	@ speichere ihn in Liste2, inkrementiere Zeiger2
+		SUBS r9, r9, #1		@ zähle mit jedem Speichern Länge um eins nach unten			; zurück zu loop
+		BNE loop			@ Kopiere bis Ende der Tabelle erreicht
+
+
+	bl bubblesort
+	pop {r4-r11, pc}	@ Ruecksprungadresse und Register
+	bx lr				@ Ruecksprung zum aufrufenden Programm
+	
+bubblesort:
+						@ hier Ihr Programm um die vorzeichenrichtige Zahlen 
+						@ in Liste2 zu sortieren
+
+	LDR r1, TAB2		@ Zeiger auf Beginn Liste2
+	LDR r9, [r1], #4	@ Lade Länge Liste2 als Counter in r9, setze Zeiger auf nächstes Element
+	SUB r9, r9, #2		@ Reduziere Länge um 2, da Länge nicht in Sortierung einbezogen werden soll
+	MOV r4, r1
+bubble1:
+	MOV r1, r4
+	MOV r8, r9
+	
+	
+bubble2: 
+	LDR r2, [r1]		@ Lade erstes Element in r2
+	LDR r3, [r1,#4]		@ Lade nächstes Element in r3
+	CMP r3, r2			@ r3 minus r2, falls r3 größer tausche
+	STRGE r3, [r1]		@ speichere r3 nach Position r2 alt
+	STRGE r2, [r1,#4]	@ speichere r2 nach Position r3 alt
+	ADD r1, r1, #4		@ erhöhe Zeiger
+	SUBS r8, r8, #1		@ reduziere Counter Swap
+	BNE bubble2			@ springe zurück
+	SUBS r9, r9, #1		@ reduziere Counter 2	
+	BNE	bubble1
+
+TAB1:	.word Liste1
+TAB2:	.word Liste2
+TabEnde: .word Liste1Ende	
+	
+.Lfe1:
+	.size main,.Lfe1-main
+
+						@ .data-Section fuer initialisierte Daten
+.data
+						@ Erster Wert der Tabelle steht fuer die Anzahl (max. 64) der Werte der Tabelle
+						
+Liste1: .byte (Liste1Ende-Liste1), -9, 8, -7, 6, -5, 4, -3, 2, -1, 0, 127, 128
+Liste1Ende:
+
+						@ .comm-Section fuer nicht initialisierte Daten
+.comm Liste2, ((Liste1Ende-Liste1)*4) 	@ Speicherbereich mit der Groesse*4 von Liste1 reservieren
+
+@ End of File
+.end

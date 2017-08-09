@@ -1,0 +1,143 @@
+// Loesung zur Aufgabe Senderliste
+// von: Andreas Müller
+// vom: WS13/14
+// 
+
+	.file	"Senderliste.S"
+
+// Daten zu den vier festen vorgegebenen Sendern sind im ROM abgelegt	
+	.section	.rodata	
+	.align	2	@ Anfangsadresse durch vier teilbar
+// Sendernamenliste	
+Sender1:
+	.ascii	"HR3\0"
+	.align	2
+Sender2:
+	.ascii	"SWR3\0"
+	.align	2
+Sender3:
+	.ascii	"Deutschlandfunk\0"
+	.align	2
+Sender4:
+	.ascii	"HR4\0"
+	.align	2
+	
+// Senderfrequenzliste
+Frequenz1:
+	.word		100	
+Frequenz2:
+	.word		200
+Frequenz3:
+	.word		300
+Frequenz4:
+	.word		400
+// Speichertasten
+Taste1:
+	.byte		'A'
+Taste2:
+	.byte		'B'
+Taste3:
+	.byte		'C'
+Taste4:
+	.byte		'D'
+Taste5:
+	.byte		'E'	
+		
+// Die Senderspeicher mit entsprechender Struktur
+	.data
+	
+	.global Senderspeicher1
+	.align	2
+	.type	Senderspeicher1, object
+	.size	Senderspeicher1, 16
+Senderspeicher1:
+	.word	Senderspeicher2		@ Zeiger auf nächstes Element
+	.word	Sender1		@ Zeiger auf Sender1
+	.word	Frequenz1	@ Zeiger auf Frequenz1
+	.word	Taste1		@ Zeiger auf zu belegende Taste
+
+	.global Senderspeicher2
+	.align	2
+	.type	Senderspeicher2, object
+	.size	Senderspeicher2, 16
+Senderspeicher2:
+	.word	Senderspeicher3		@ Zeiger auf nächstes Element
+	.word	Sender2		@ Zeiger auf Sender2
+	.word	Frequenz2	@ Zeiger auf Frequenz2
+	.word	Taste2		@ Zeiger auf zu belegende Taste
+
+	.global Senderspeicher3
+	.align	2
+	.type	Senderspeicher3, object
+	.size	Senderspeicher3, 16
+Senderspeicher3:
+	.word	Senderspeicher4		@ Zeiger auf nächstes Element
+	.word	Sender3		@ Zeiger auf Sender3
+	.word	Frequenz3	@ Zeiger auf Frequenz3
+	.word	Taste3		@ Zeiger auf zu belegende Taste
+	
+	.global Senderspeicher4
+	.align	2
+	.type	Senderspeicher4, object
+	.size	Senderspeicher4, 16
+Senderspeicher4:
+	.word	Senderspeicher1		@ Zeiger auf nächstes Element
+	.word	Sender4		@ Zeiger auf Sender4
+	.word	Frequenz4	@ Zeiger auf Frequenz4
+	.word	Taste4		@ Zeiger auf zu belegende Taste
+	
+Frequenz5:
+	.word 500
+
+Sender5:
+	.ascii "Mein Sender\0"
+	
+	.text
+	.align	2
+	.global	main
+	.type	main,function
+
+@ Auch die Frequenz soll zur Laufzeit veränderbar sein -> also nicht in die text-Section
+@Frequenz5:
+@	.word 500
+	
+main:	
+
+
+init_senderspeicher5:	@ Initialisiere Senderspeicher5 mit Name, Frequenz, Taste
+	LDR R1, SEND5		@ R1 zeigt auf erstes Element von Senderspeicher5
+	LDR R2, SEND52		@ R2 zeigt auf Sender5 - verwende Zeiger SEND52, da Sender5 in Datasection
+	STR R2, [R1,#4]		@ Speichere Zeiger auf Sender5 als zweites Element von Senderspeicher5
+	LDR R2, SEND53		@ R2 zeigt auf Frequenz5 - verwende Zeiger SEND53, da Frequenz5 in Datasection
+	STR R2, [R1,#8]		@ Speichere Zeiger auf Frequenz5 als drittes Element von Senderspeicher5
+	LDR R2, SEND54		@ R2 zeigt auf Taste E - verwende Zeiger SEND54, da Taste E in ROM
+	STR R2, [R1,#12]	@ Speichere Zeiger auf Taste E als viertes Element von Senderspeicher5
+				@ Jetzt ist Senderspeicher 5 bis auf die Einflechtung in die Liste fertig
+	
+insert_senderspeicher5:	@ Fuege Senderspeicher5 in die verkettete Liste ein
+	LDR R2, SEND4		@ Zeiger auf erstes Element von Senderspeicher4
+	LDR R0, [R2]		@ Hole Inhalt des ersten Elements von Senderspeicher4 (Zeiger auf Senderspeicher1)
+	STR R0, [R1]		@ Erstes Element von Senderspeicher5 = erstes Element von Senderspeicher4 
+	STR R1,	[R2]		@ Erstes Element von Senderspeicher4 = Zeiger auf Senderspeicher5
+				@ Damit ist Senderspeicher5 in die verkettete Liste eingeflochten
+
+	MOV PC, LR			@ Rückkehr ins aufrufende Programm
+	
+								@ Ein paar Zeiger (die ersten drei werden nicht benötigt)...
+	.space 1024			@ Fülle mit Leerzeichen
+	
+@ werden nicht benötigt	
+@SEND1:	.word Senderspeicher1	@ Zeiger auf erstes Element von Senderspeicher1
+@SEND2:	.word Senderspeicher2	@ Zeiger auf erstes Element von Senderspeicher2
+@SEND3:	.word Senderspeicher3	@ Zeiger auf erstes Element von Senderspeicher3
+SEND4:	.word Senderspeicher4	@ Zeiger auf erstes Element von Senderspeicher4
+SEND5:	.word Senderspeicher5	@ Zeiger auf erstes Element von Senderspeicher5
+SEND52:	.word Sender5			@ Zeiger auf erstes Element von Sender5 (Sendername5)
+@ darf nicht in der text-Section stehen
+SEND53:	.word Frequenz5			@ Zeiger auf die Frequenz für Senderspeicher5
+SEND54:	.word Taste5			@ Zeiger auf erstes Element von Taste5 (hat nur ein Element)
+	
+// Speicher für einen 5ten Senderspeicher reservieren	
+	.comm 	Senderspeicher5, 16
+
+// Programmende

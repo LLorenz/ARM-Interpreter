@@ -1,0 +1,34 @@
+// Name:		Matrikelnummer:
+// Name:		Matrikelnummer:
+// Datum:
+
+	.file	"deadbeef.S"
+	.text		@ legt eine Textsection fuer PrgrammCode + Konstanten an
+	.align	2	@ sorgt dafuer, dass nachfolgende Anweisungen auf einer durch 4 teilbaren Adresse liegen
+			@ unteren 2 Bit sind 0
+	.global	main	@ nimmt das Symbol main in die globale Sysmboltabelle auf
+	.type	main,function
+main:
+@	LDR R2, myVar1
+@	ADR R1, myVar1
+	mov r1,#24
+	mov r2,#256
+	LDR R0, [R1, R2, LSR #5]
+	LDR R1, [R1, #0x4]
+	EOR R0, R0, R1
+	BX LR
+
+myVar1: .word 0x100
+myVar2:	.word 0x13371337
+myVar3: .word 0xCD9AADD8
+
+.Lfe1:
+	.size	main,.Lfe1-main
+
+// End of File
+
+
+statt
+
+LDR R2, myVar1
+ADR R1, myVar1

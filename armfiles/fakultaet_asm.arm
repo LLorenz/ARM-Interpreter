@@ -1,0 +1,29 @@
+	.file	"fakultaet_asm.S"
+	.text
+	.align	2
+	.global	main
+	.type	main, %function
+
+fakultaet:
+	PUSH {R4, LR}
+	MOV	R4, R0
+	cmp	R0, #1
+	BLE	zurueck
+	SUB	R0, R0, #1
+	BL	fakultaet
+	MUL	R4, R0, R4
+
+zurueck:
+	MOV	R0, R4
+	POP {R4, PC}
+	
+main:
+	PUSH {LR}
+	MOV R0, #7
+	BL fakultaet
+	POP {PC}
+	
+	.size	fakultaet, .-fakultaet
+	
+	.ident	"GCC: (GNU) 4.4.1"
+	.end
